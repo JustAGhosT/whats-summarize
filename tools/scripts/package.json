@@ -26,8 +26,8 @@
     "@types/minimatch": "^6.0.0",
     "@types/node": "^20.19.9",
     "chalk": "^5.4.1",
-    "glob": "^10.5.0",
-    "minimatch": "^10.0.3",
+    "glob": "^12.0.0",
+    "minimatch": "^10.2.4",
     "typescript": "^5.0.0"
   }
 }
