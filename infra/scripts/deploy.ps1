@@ -47,7 +47,6 @@ $ParamsDir = Join-Path $InfraDir 'parameters'
 
 # Naming pattern per ADR-0027 (no region suffix): {org}-{env}-{project}-{type}
 $Base = "$Org-$Environment-$ProjectName"
-$BaseAlphanumeric = "$Org$Environment$ProjectName"
 $ResourceGroup = "$Base-rg"
 
 # =============================================================================
@@ -160,7 +159,7 @@ function Ensure-ResourceGroup {
         az group create `
             --name $ResourceGroup `
             --location $Location `
-            --tags project=$ProjectName environment=$Environment managedBy=bicep | Out-Null
+            --tags org=$Org project=$ProjectName environment=$Environment managedBy=bicep | Out-Null
         Write-SuccessMessage "Resource group created"
     }
 }

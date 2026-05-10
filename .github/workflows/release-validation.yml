@@ -195,8 +195,8 @@ jobs:
             echo "✅ Application Insights exists"
           fi
 
-          # Check Container Apps
-          CAE_NAME="cae-${PROJECT}-${ENV}"
+          # Check Container Apps (names match bicep BASE pattern: ${BASE}-cae, ${BASE}-api)
+          CAE_NAME="${BASE}-cae"
           echo "Checking Container Apps Environment: $CAE_NAME..."
           if ! az containerapp env show --name "$CAE_NAME" --resource-group "$RG" &>/dev/null; then
             echo "❌ Container Apps Environment not found"
@@ -206,10 +206,10 @@ jobs:
             echo "✅ Container Apps Environment exists"
 
             # Check API app
-            CA_NAME="ca-${PROJECT}-${ENV}-api"
+            CA_NAME="${BASE}-api"
             if ! az containerapp show --name "$CA_NAME" --resource-group "$RG" &>/dev/null; then
               echo "❌ API Container App not found"
-              MISSING="${MISSING}container-app-api,"
+              MISSING="${MISSING}container-apps-api,"
               PASSED="false"
             else
               echo "✅ API Container App exists"

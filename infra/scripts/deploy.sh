@@ -109,7 +109,6 @@ PARAMS_DIR="${INFRA_DIR}/parameters"
 
 # Resource naming per ADR-0027 (no region suffix): {org}-{env}-{project}-{type}
 BASE="${ORG}-${ENVIRONMENT}-${PROJECT_NAME}"
-BASE_ALPHANUMERIC="${ORG}${ENVIRONMENT}${PROJECT_NAME}"
 RESOURCE_GROUP="${BASE}-rg"
 
 # =============================================================================
@@ -206,7 +205,7 @@ ensure_resource_group() {
         az group create \
             --name "$RESOURCE_GROUP" \
             --location "$LOCATION" \
-            --tags project="$PROJECT_NAME" environment="$ENVIRONMENT" managedBy="bicep"
+            --tags org="$ORG" project="$PROJECT_NAME" environment="$ENVIRONMENT" managedBy="bicep"
         log_success "Resource group created"
     fi
 }

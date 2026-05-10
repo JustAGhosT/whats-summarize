@@ -192,7 +192,9 @@ validate_cosmos_db() {
 
         # Check database and containers
         log_info "Checking Cosmos DB containers..."
-        local containers=$(az cosmosdb sql container list --account-name "$cosmos_name" --database-name "$PROJECT_NAME" --resource-group "$RESOURCE_GROUP" -o json 2>/dev/null)
+        # COSMOS_DATABASE_NAME may be set explicitly if bicep databaseName param differs from projectName
+        local db_name="${COSMOS_DATABASE_NAME:-$PROJECT_NAME}"
+        local containers=$(az cosmosdb sql container list --account-name "$cosmos_name" --database-name "$db_name" --resource-group "$RESOURCE_GROUP" -o json 2>/dev/null)
 
         local required_containers=("users" "chats" "summaries")
         for container in "${required_containers[@]}"; do
