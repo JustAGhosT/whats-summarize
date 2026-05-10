@@ -4,7 +4,8 @@
 using '../bicep/main.bicep'
 
 param environment = 'prod'
-param projectName = 'whatssummarize'
+param org = 'nl'
+param projectName = 'convolens'
 param location = 'eastus'
 
 // Enable services for production
@@ -19,10 +20,11 @@ param enableStaticWebApps = true
 // Configure Azure AI Foundry manually and set AZURE_OPENAI_* env vars
 param openAIDeployments = []
 
-param adminEmail = 'admin@whatssummarize.com'
+param adminEmail = 'admin@convolens.com'
 
 param tags = {
-  project: 'whatssummarize'
+  org: 'nl'
+  project: 'convolens'
   environment: 'prod'
   managedBy: 'bicep'
   costCenter: 'production'

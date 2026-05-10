@@ -36,7 +36,8 @@ param(
 # =============================================================================
 
 $ErrorActionPreference = 'Stop'
-$ProjectName = 'whatssummarize'
+$Org = 'nl'
+$ProjectName = 'convolens'
 $Location = 'eastus'
 
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -44,7 +45,10 @@ $InfraDir = Split-Path -Parent $ScriptDir
 $BicepDir = Join-Path $InfraDir 'bicep'
 $ParamsDir = Join-Path $InfraDir 'parameters'
 
-$ResourceGroup = "rg-$ProjectName-$Environment"
+# Naming pattern per ADR-0027 (no region suffix): {org}-{env}-{project}-{type}
+$Base = "$Org-$Environment-$ProjectName"
+$BaseAlphanumeric = "$Org$Environment$ProjectName"
+$ResourceGroup = "$Base-rg"
 
 # =============================================================================
 # Utility Functions
@@ -314,7 +318,7 @@ function New-EnvironmentFile {
     param([string]$DeploymentName)
 
     $envFile = Join-Path $InfraDir '..' 'apps' 'api' '.env.azure'
-    $kvName = "kv$ProjectName$Environment" -replace '-', ''
+    $kvName = "$Base-kv"
 
     try {
         $outputs = az deployment group show `

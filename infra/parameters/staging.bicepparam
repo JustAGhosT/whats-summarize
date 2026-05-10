@@ -7,7 +7,8 @@
 using '../bicep/main.bicep'
 
 param environment = 'staging'
-param projectName = 'whatssummarize'
+param org = 'nl'
+param projectName = 'convolens'
 param location = 'eastus'
 
 // Enable services for staging (mirrors production)
@@ -22,10 +23,11 @@ param enableStaticWebApps = true
 // Configure Azure AI Foundry manually and set AZURE_OPENAI_* env vars
 param openAIDeployments = []
 
-param adminEmail = 'staging-alerts@whatssummarize.com'
+param adminEmail = 'staging-alerts@convolens.com'
 
 param tags = {
-  project: 'whatssummarize'
+  org: 'nl'
+  project: 'convolens'
   environment: 'staging'
   managedBy: 'bicep'
   costCenter: 'staging'

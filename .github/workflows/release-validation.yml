@@ -89,8 +89,11 @@ jobs:
         id: validate
         run: |
           ENV="${{ matrix.environment }}"
-          PROJECT="whatssummarize"
-          RG="rg-${PROJECT}-${ENV}"
+          ORG="nl"
+          PROJECT="convolens"
+          # Naming pattern per ADR-0027 (no region suffix): {org}-{env}-{project}-{type}
+          BASE="${ORG}-${ENV}-${PROJECT}"
+          RG="${BASE}-rg"
 
           echo "=============================================="
           echo "Validating Azure Resources for Release"
@@ -112,8 +115,7 @@ jobs:
           fi
 
           # Check Key Vault
-          KV_NAME="kv${PROJECT}${ENV}"
-          KV_NAME="${KV_NAME//-/}"
+          KV_NAME="${BASE}-kv"
           echo "Checking Key Vault: $KV_NAME..."
           if ! az keyvault show --name "$KV_NAME" &>/dev/null; then
             echo "❌ Key Vault not found"
@@ -133,9 +135,8 @@ jobs:
             done
           fi
 
-          # Check Storage Account
-          STORAGE_NAME="st${PROJECT}${ENV}"
-          STORAGE_NAME="${STORAGE_NAME//-/}"
+          # Check Storage Account (alphanumeric only)
+          STORAGE_NAME="${ORG}${ENV}${PROJECT}st"
           echo "Checking Storage Account: $STORAGE_NAME..."
           if ! az storage account show --name "$STORAGE_NAME" --resource-group "$RG" &>/dev/null; then
             echo "❌ Storage account not found"
@@ -146,7 +147,7 @@ jobs:
           fi
 
           # Check Azure OpenAI
-          OPENAI_NAME="oai-${PROJECT}-${ENV}"
+          OPENAI_NAME="${BASE}-oai"
           echo "Checking Azure OpenAI: $OPENAI_NAME..."
           if ! az cognitiveservices account show --name "$OPENAI_NAME" --resource-group "$RG" &>/dev/null; then
             echo "⚠️  Azure OpenAI not found (optional)"
@@ -164,7 +165,7 @@ jobs:
           fi
 
           # Check Cosmos DB
-          COSMOS_NAME="cosmos-${PROJECT}-${ENV}"
+          COSMOS_NAME="${BASE}-cosmos"
           echo "Checking Cosmos DB: $COSMOS_NAME..."
           if ! az cosmosdb show --name "$COSMOS_NAME" --resource-group "$RG" &>/dev/null; then
             echo "⚠️  Cosmos DB not found (optional)"
@@ -174,7 +175,7 @@ jobs:
           fi
 
           # Check Redis
-          REDIS_NAME="redis-${PROJECT}-${ENV}"
+          REDIS_NAME="${BASE}-redis"
           echo "Checking Redis Cache: $REDIS_NAME..."
           if ! az redis show --name "$REDIS_NAME" --resource-group "$RG" &>/dev/null; then
             echo "⚠️  Redis Cache not found (optional)"
@@ -184,7 +185,7 @@ jobs:
           fi
 
           # Check App Insights
-          APPI_NAME="appi-${PROJECT}-${ENV}"
+          APPI_NAME="${BASE}-appi"
           echo "Checking Application Insights: $APPI_NAME..."
           if ! az monitor app-insights component show --app "$APPI_NAME" --resource-group "$RG" &>/dev/null; then
             echo "❌ Application Insights not found"

@@ -29,8 +29,12 @@ NC='\033[0m' # No Color
 # Configuration
 ENVIRONMENT="${1:-dev}"
 STRICT_MODE="${2:-}"
-PROJECT_NAME="whatssummarize"
-RESOURCE_PREFIX="${PROJECT_NAME}-${ENVIRONMENT}"
+ORG="nl"
+PROJECT_NAME="convolens"
+# Naming pattern per ADR-0027 (no region suffix): {org}-{env}-{project}-{type}
+BASE="${ORG}-${ENVIRONMENT}-${PROJECT_NAME}"
+# Hyphen-stripped variant for resources where Azure forbids hyphens (storage)
+BASE_ALPHANUMERIC="${ORG}${ENVIRONMENT}${PROJECT_NAME}"
 
 # Counters
 TOTAL_CHECKS=0
@@ -88,7 +92,7 @@ check_resource() {
 # =============================================================================
 
 validate_resource_group() {
-    local rg_name="rg-${RESOURCE_PREFIX}"
+    local rg_name="${BASE}-rg"
 
     log_info "Checking Resource Group: $rg_name"
     ((TOTAL_CHECKS++))
@@ -104,8 +108,7 @@ validate_resource_group() {
 }
 
 validate_key_vault() {
-    local kv_name="kv${PROJECT_NAME}${ENVIRONMENT}"
-    kv_name="${kv_name//-/}"  # Remove hyphens
+    local kv_name="${BASE}-kv"
 
     log_info "Checking Key Vault..."
     check_resource "Microsoft.KeyVault/vaults" "$kv_name" "$RESOURCE_GROUP" "true"
@@ -127,8 +130,8 @@ validate_key_vault() {
 }
 
 validate_storage() {
-    local storage_name="st${PROJECT_NAME}${ENVIRONMENT}"
-    storage_name="${storage_name//-/}"
+    # Storage Account names: alphanumeric only, max 24 chars
+    local storage_name="${BASE_ALPHANUMERIC}st"
 
     log_info "Checking Storage Account..."
     check_resource "Microsoft.Storage/storageAccounts" "$storage_name" "$RESOURCE_GROUP" "true"
@@ -152,7 +155,7 @@ validate_storage() {
 }
 
 validate_openai() {
-    local openai_name="oai-${RESOURCE_PREFIX}"
+    local openai_name="${BASE}-oai"
 
     log_info "Checking Azure OpenAI..."
 
@@ -179,7 +182,7 @@ validate_openai() {
 }
 
 validate_cosmos_db() {
-    local cosmos_name="cosmos-${RESOURCE_PREFIX}"
+    local cosmos_name="${BASE}-cosmos"
 
     log_info "Checking Cosmos DB..."
 
@@ -206,7 +209,7 @@ validate_cosmos_db() {
 }
 
 validate_redis() {
-    local redis_name="redis-${RESOURCE_PREFIX}"
+    local redis_name="${BASE}-redis"
 
     log_info "Checking Redis Cache..."
 
@@ -228,15 +231,15 @@ validate_redis() {
 }
 
 validate_app_insights() {
-    local appi_name="appi-${RESOURCE_PREFIX}"
+    local appi_name="${BASE}-appi"
 
     log_info "Checking Application Insights..."
     check_resource "Microsoft.Insights/components" "$appi_name" "$RESOURCE_GROUP" "true"
 }
 
 validate_container_apps() {
-    local env_name="cae-${RESOURCE_PREFIX}"
-    local app_name="ca-${RESOURCE_PREFIX}-api"
+    local env_name="${BASE}-cae"
+    local app_name="${BASE}-api"
 
     log_info "Checking Container Apps Environment..."
 
@@ -267,7 +270,7 @@ validate_container_apps() {
 }
 
 validate_static_web_app() {
-    local swa_name="stapp-${RESOURCE_PREFIX}"
+    local swa_name="${BASE}-swa"
 
     log_info "Checking Static Web App..."
 

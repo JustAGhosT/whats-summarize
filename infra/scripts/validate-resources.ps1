@@ -24,8 +24,12 @@ param(
 # =============================================================================
 
 $ErrorActionPreference = 'Continue'
-$ProjectName = 'whatssummarize'
-$ResourceGroup = "rg-$ProjectName-$Environment"
+$Org = 'nl'
+$ProjectName = 'convolens'
+# Naming pattern per ADR-0027 (no region suffix): {org}-{env}-{project}-{type}
+$Base = "$Org-$Environment-$ProjectName"
+$BaseAlphanumeric = "$Org$Environment$ProjectName"
+$ResourceGroup = "$Base-rg"
 
 # Track validation results
 $script:ValidationPassed = $true
@@ -103,15 +107,15 @@ function Test-AllResources {
         -Required $true
 
     # Key Vault
-    $kvName = "kv$ProjectName$Environment" -replace '-', ''
+    $kvName = "$Base-kv"
     Test-ResourceExists `
         -ResourceName $kvName `
         -ResourceType "Key Vault" `
         -CheckScript { az keyvault show --name $kvName -o json } `
         -Required $true
 
-    # Storage Account
-    $storageName = "st$ProjectName$Environment" -replace '-', ''
+    # Storage Account (alphanumeric only, max 24 chars)
+    $storageName = "${BaseAlphanumeric}st"
     Test-ResourceExists `
         -ResourceName $storageName `
         -ResourceType "Storage Account" `
@@ -119,7 +123,7 @@ function Test-AllResources {
         -Required $true
 
     # Application Insights
-    $appiName = "appi-$ProjectName-$Environment"
+    $appiName = "$Base-appi"
     Test-ResourceExists `
         -ResourceName $appiName `
         -ResourceType "Application Insights" `
@@ -127,7 +131,7 @@ function Test-AllResources {
         -Required $true
 
     # Container Apps Environment
-    $caeName = "cae-$ProjectName-$Environment"
+    $caeName = "$Base-cae"
     Test-ResourceExists `
         -ResourceName $caeName `
         -ResourceType "Container Apps Environment" `
@@ -141,7 +145,7 @@ function Test-AllResources {
     Write-Host "-------------------" -ForegroundColor Gray
 
     # Azure OpenAI / AI Foundry
-    $openaiName = "oai-$ProjectName-$Environment"
+    $openaiName = "$Base-oai"
     Test-ResourceExists `
         -ResourceName $openaiName `
         -ResourceType "Azure OpenAI" `
@@ -149,7 +153,7 @@ function Test-AllResources {
         -Required $false
 
     # Cosmos DB
-    $cosmosName = "cosmos-$ProjectName-$Environment"
+    $cosmosName = "$Base-cosmos"
     Test-ResourceExists `
         -ResourceName $cosmosName `
         -ResourceType "Cosmos DB" `
@@ -157,7 +161,7 @@ function Test-AllResources {
         -Required $false
 
     # Redis Cache
-    $redisName = "redis-$ProjectName-$Environment"
+    $redisName = "$Base-redis"
     Test-ResourceExists `
         -ResourceName $redisName `
         -ResourceType "Redis Cache" `
@@ -165,7 +169,7 @@ function Test-AllResources {
         -Required $false
 
     # Static Web App
-    $swaName = "swa-$ProjectName-$Environment"
+    $swaName = "$Base-swa"
     Test-ResourceExists `
         -ResourceName $swaName `
         -ResourceType "Static Web App" `
@@ -180,7 +184,7 @@ function Test-AllResources {
 # =============================================================================
 
 function Test-KeyVaultSecrets {
-    $kvName = "kv$ProjectName$Environment" -replace '-', ''
+    $kvName = "$Base-kv"
 
     Write-Host "Key Vault Secrets:" -ForegroundColor White
     Write-Host "------------------" -ForegroundColor Gray

@@ -40,9 +40,9 @@ permissions:
   pull-requests: write
 
 env:
-  AZURE_RESOURCE_GROUP_DEV: rg-whatssummarize-dev
-  AZURE_RESOURCE_GROUP_STAGING: rg-whatssummarize-staging
-  AZURE_RESOURCE_GROUP_PROD: rg-whatssummarize-prod
+  AZURE_RESOURCE_GROUP_DEV: nl-dev-convolens-rg
+  AZURE_RESOURCE_GROUP_STAGING: nl-staging-convolens-rg
+  AZURE_RESOURCE_GROUP_PROD: nl-prod-convolens-rg
   AZURE_LOCATION: eastus
 
 jobs:
@@ -126,7 +126,7 @@ jobs:
 
       - name: Ensure Resource Group
         run: |
-          RG_NAME="rg-whatssummarize-${{ matrix.environment }}"
+          RG_NAME="nl-${{ matrix.environment }}-convolens-rg"
           if ! az group show --name "$RG_NAME" &>/dev/null; then
             echo "Creating resource group: $RG_NAME"
             az group create --name "$RG_NAME" --location "${{ env.AZURE_LOCATION }}"
@@ -135,7 +135,7 @@ jobs:
       - name: What-If Analysis
         id: whatif
         run: |
-          RG_NAME="rg-whatssummarize-${{ matrix.environment }}"
+          RG_NAME="nl-${{ matrix.environment }}-convolens-rg"
           echo "Running what-if analysis for ${{ matrix.environment }}..."
 
           az deployment group what-if \
@@ -233,7 +233,7 @@ jobs:
 
       - name: Ensure Resource Group
         run: |
-          RG_NAME="rg-whatssummarize-${{ matrix.environment }}"
+          RG_NAME="nl-${{ matrix.environment }}-convolens-rg"
           if ! az group show --name "$RG_NAME" &>/dev/null; then
             echo "Creating resource group: $RG_NAME"
             az group create \
@@ -245,7 +245,7 @@ jobs:
       - name: Deploy Infrastructure
         id: deploy
         run: |
-          RG_NAME="rg-whatssummarize-${{ matrix.environment }}"
+          RG_NAME="nl-${{ matrix.environment }}-convolens-rg"
           DEPLOYMENT_NAME="deploy-${{ github.run_id }}-${{ github.run_attempt }}"
 
           echo "Deploying to ${{ matrix.environment }}..."

@@ -4,7 +4,8 @@
 using '../bicep/main.bicep'
 
 param environment = 'dev'
-param projectName = 'whatssummarize'
+param org = 'nl'
+param projectName = 'convolens'
 param location = 'eastus'
 
 // Enable services for development
@@ -22,7 +23,8 @@ param openAIDeployments = []
 param adminEmail = ''
 
 param tags = {
-  project: 'whatssummarize'
+  org: 'nl'
+  project: 'convolens'
   environment: 'dev'
   managedBy: 'bicep'
   costCenter: 'development'

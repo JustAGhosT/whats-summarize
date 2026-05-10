@@ -30,10 +30,14 @@ param environment string = 'dev'
 @description('Azure region for resources')
 param location string = resourceGroup().location
 
-@description('Project name used for resource naming. Resource names retain the legacy "whatssummarize" prefix until a separate user-driven Azure rename decision lands.')
+@description('Organisation prefix per NL Azure Naming Standards (ADR-0027 — region suffix dropped from resource names)')
+@allowed(['nl', 'pvc', 'tws', 'mys'])
+param org string = 'nl'
+
+@description('Project name used for resource naming. Renamed from "whatssummarize" to "convolens" on 2026-05-10 ahead of the GitHub repo transfer + first Azure deploy under the new name. No infra exists under the old name, so this is a clean cutover, not a migration.')
 @minLength(3)
 @maxLength(15)
-param projectName string = 'whatssummarize'
+param projectName string = 'convolens'
 
 @description('Logical database name used for Cosmos DB (and future Azure SQL). Decoupled from projectName so the brand rename can land without renaming Azure resources. Override at deploy time only when migrating data.')
 @minLength(3)
@@ -82,6 +86,7 @@ param openAIDeployments array = [
 
 @description('Tags to apply to all resources')
 param tags object = {
+  org: org
   project: projectName
   environment: environment
   managedBy: 'bicep'
@@ -91,8 +96,12 @@ param tags object = {
 // Variables
 // =============================================================================
 
-var resourcePrefix = '${projectName}-${environment}'
-var resourcePrefixClean = replace(resourcePrefix, '-', '')
+// Naming pattern per ADR-0027 (no region suffix):
+//   {org}-{env}-{project}-{type}                 e.g. nl-dev-convolens-kv
+// Storage Account name constraint (alphanumeric only, max 24 chars) requires
+// a hyphen-stripped variant; everything else uses the hyphenated form.
+var base = '${org}-${environment}-${projectName}'
+var baseAlphanumeric = replace(base, '-', '')
 
 // SKUs based on environment
 // Redis: Basic (no SLA) for dev, Standard (SLA) for prod
@@ -117,7 +126,7 @@ var containerAppMaxReplicas = environment == 'prod' ? 10 : 3
 module keyVault 'modules/key-vault.bicep' = {
   name: 'keyVault-${environment}'
   params: {
-    name: 'kv-${resourcePrefixClean}'
+    name: '${base}-kv'
     location: location
     tags: tags
     enableSoftDelete: environment == 'prod'
@@ -129,7 +138,7 @@ module keyVault 'modules/key-vault.bicep' = {
 module storage 'modules/storage.bicep' = {
   name: 'storage-${environment}'
   params: {
-    name: 'st${resourcePrefixClean}'
+    name: '${baseAlphanumeric}st'
     location: location
     tags: tags
     sku: storageSkuName
@@ -142,7 +151,7 @@ module storage 'modules/storage.bicep' = {
 module openAI 'modules/openai.bicep' = if (enableOpenAI) {
   name: 'openai-${environment}'
   params: {
-    name: 'oai-${resourcePrefix}'
+    name: '${base}-oai'
     location: location // Note: OpenAI has limited region availability
     tags: tags
     deployments: openAIDeployments
@@ -154,7 +163,7 @@ module openAI 'modules/openai.bicep' = if (enableOpenAI) {
 module cosmosDB 'modules/cosmos-db.bicep' = if (enableCosmosDB) {
   name: 'cosmosdb-${environment}'
   params: {
-    name: 'cosmos-${resourcePrefix}'
+    name: '${base}-cosmos'
     location: location
     tags: tags
     databaseName: databaseName
@@ -180,7 +189,7 @@ module cosmosDB 'modules/cosmos-db.bicep' = if (enableCosmosDB) {
 module redis 'modules/redis.bicep' = if (enableRedis) {
   name: 'redis-${environment}'
   params: {
-    name: 'redis-${resourcePrefix}'
+    name: '${base}-redis'
     location: location
     tags: tags
     sku: redisSku
@@ -194,7 +203,7 @@ module redis 'modules/redis.bicep' = if (enableRedis) {
 module appInsights 'modules/app-insights.bicep' = {
   name: 'appinsights-${environment}'
   params: {
-    name: 'appi-${resourcePrefix}'
+    name: '${base}-appi'
     location: location
     tags: tags
   }
@@ -204,8 +213,8 @@ module appInsights 'modules/app-insights.bicep' = {
 module containerApps 'modules/container-apps.bicep' = if (enableContainerApps) {
   name: 'containerapps-${environment}'
   params: {
-    environmentName: 'cae-${resourcePrefix}'
-    apiAppName: 'ca-${resourcePrefix}-api'
+    environmentName: '${base}-cae'
+    apiAppName: '${base}-api'
     location: location
     tags: tags
     appInsightsConnectionString: appInsights.outputs.connectionString
@@ -226,7 +235,7 @@ module containerApps 'modules/container-apps.bicep' = if (enableContainerApps) {
 module staticWebApp 'modules/static-web-app.bicep' = if (enableStaticWebApps) {
   name: 'staticwebapp-${environment}'
   params: {
-    name: 'stapp-${resourcePrefix}'
+    name: '${base}-swa'
     location: location
     tags: tags
     apiUrl: enableContainerApps ? containerApps.outputs.apiUrl : ''
@@ -237,7 +246,7 @@ module staticWebApp 'modules/static-web-app.bicep' = if (enableStaticWebApps) {
 module budgetAlerts 'modules/budget-alerts.bicep' = if (enableBudgetAlerts && !empty(adminEmail)) {
   name: 'budget-${environment}'
   params: {
-    name: 'budget-${resourcePrefix}'
+    name: '${base}-budget'
     amount: monthlyBudgetAmount
     contactEmails: [adminEmail]
     environment: environment

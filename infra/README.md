@@ -2,10 +2,16 @@
 
 Azure infrastructure as code using Bicep templates for ConvoLens.
 
-> **Note:** Azure resource names (e.g. `rg-whatssummarize-*`, `kvwhatssummarizedev`,
-> `cosmos-whatssummarize-dev`, `oai-whatssummarize-dev`) intentionally still
-> reference the legacy project name — renaming live Azure resources is a
-> separate, user-driven decision tracked in PR4 / cross-repo follow-ups.
+> **Note:** On 2026-05-10 the Bicep `projectName` default flipped from
+> `whatssummarize` to `convolens` AND the resource-naming convention
+> migrated to the **NL standard with ADR-0027 region suffix dropped**:
+> `{org}-{env}-{project}-{type}` (e.g. `nl-dev-convolens-rg`,
+> `nl-dev-convolens-kv`). The previous `<type>-<project>-<env>` /
+> `kv<project><env>` patterns are gone. **No Azure resources currently
+> exist under any of these names** — the first deploy creates clean
+> resource groups, no migration required. Cutover is gated on the AAD
+> federated-credential fix (red on `main` since 2025-12-07; tracked in
+> `org-meta/docs/handoffs/2026-05-10-azure-rename-plan-omnipost-convolens.md`).
 
 ## Overview
 
@@ -138,12 +144,12 @@ cd infra/scripts
 ```bash
 # Create resource group
 az group create \
-  --name rg-whatssummarize-dev \
+  --name nl-dev-convolens-rg \
   --location eastus
 
 # Deploy
 az deployment group create \
-  --resource-group rg-whatssummarize-dev \
+  --resource-group nl-dev-convolens-rg \
   --template-file bicep/main.bicep \
   --parameters parameters/dev.bicepparam
 ```
@@ -171,7 +177,8 @@ Edit `parameters/<environment>.bicepparam` to customize:
 
 ```bicep
 param environment = 'dev'
-param projectName = 'whatssummarize'
+param org = 'nl'
+param projectName = 'convolens'
 param location = 'eastus'
 
 // Enable/disable optional resources
@@ -187,13 +194,29 @@ param openAIDeployments = [
 
 ### Resource Naming Convention
 
-Resources follow this naming pattern:
-- `<type>-<project>-<environment>`
+Resources follow the **NL Azure Naming Standards**, with the **region suffix
+dropped** per [mystira ADR-0027](https://github.com/JustAGhosT/mystira-workspace/blob/main/docs/architecture/adr/0027-azure-resource-naming-convention.md)
+(adopted for convolens on 2026-05-10):
 
-Examples:
-- `rg-whatssummarize-dev` (Resource Group)
-- `kvwhatssummarizedev` (Key Vault - no hyphens)
-- `cosmos-whatssummarize-dev` (Cosmos DB)
+```
+{org}-{env}-{project}-{type}
+```
+
+Region is no longer encoded in the resource name. It is expressed by the
+resource group's `location` property and the `region` resource tag.
+
+Examples (dev environment):
+
+- `nl-dev-convolens-rg` (Resource Group)
+- `nl-dev-convolens-kv` (Key Vault — uses hyphens; max 24 chars)
+- `nldevconvolensst` (Storage Account — alphanumeric only, max 24 chars)
+- `nl-dev-convolens-cosmos` (Cosmos DB)
+- `nl-dev-convolens-redis` (Redis Cache)
+- `nl-dev-convolens-oai` (Azure OpenAI / Cognitive Services)
+- `nl-dev-convolens-appi` (Application Insights)
+- `nl-dev-convolens-cae` (Container Apps Environment)
+- `nl-dev-convolens-api` (Container App — backend API)
+- `nl-dev-convolens-swa` (Static Web App)
 
 ## CI/CD Workflows
 
@@ -221,11 +244,11 @@ After deployment, the script generates `.env.azure` with:
 AZURE_PROVIDER_ENABLED=true
 
 # Azure OpenAI
-AZURE_OPENAI_ENDPOINT=https://oai-whatssummarize-dev.openai.azure.com
+AZURE_OPENAI_ENDPOINT=https://nl-dev-convolens-oai.openai.azure.com
 AZURE_OPENAI_DEPLOYMENT=gpt-4
 
 # Azure Cosmos DB
-AZURE_COSMOS_ENDPOINT=https://cosmos-whatssummarize-dev.documents.azure.com
+AZURE_COSMOS_ENDPOINT=https://nl-dev-convolens-cosmos.documents.azure.com
 
 # etc...
 ```
@@ -294,7 +317,7 @@ Azure OpenAI has limited regional availability. Update `location` parameter if n
 Ensure your identity has Key Vault access:
 ```bash
 az keyvault set-policy \
-  --name kvwhatssummarizedev \
+  --name nl-dev-convolens-kv \
   --upn your@email.com \
   --secret-permissions get list set delete
 ```

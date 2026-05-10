@@ -39,7 +39,8 @@ WHAT_IF=false
 VALIDATE_ONLY=false
 SKIP_WHAT_IF=false
 FORCE=false
-PROJECT_NAME="whatssummarize"
+ORG="nl"
+PROJECT_NAME="convolens"
 LOCATION="eastus"
 
 # Parse arguments
@@ -106,8 +107,10 @@ INFRA_DIR="$(dirname "$SCRIPT_DIR")"
 BICEP_DIR="${INFRA_DIR}/bicep"
 PARAMS_DIR="${INFRA_DIR}/parameters"
 
-# Resource naming
-RESOURCE_GROUP="rg-${PROJECT_NAME}-${ENVIRONMENT}"
+# Resource naming per ADR-0027 (no region suffix): {org}-{env}-{project}-{type}
+BASE="${ORG}-${ENVIRONMENT}-${PROJECT_NAME}"
+BASE_ALPHANUMERIC="${ORG}${ENVIRONMENT}${PROJECT_NAME}"
+RESOURCE_GROUP="${BASE}-rg"
 
 # =============================================================================
 # Utility Functions
@@ -214,7 +217,7 @@ ensure_resource_group() {
 
 run_what_if() {
     local param_file="${PARAMS_DIR}/${ENVIRONMENT}.bicepparam"
-    local deployment_name="whatssummarize-${ENVIRONMENT}-whatif-$(date +%Y%m%d-%H%M%S)"
+    local deployment_name="convolens-${ENVIRONMENT}-whatif-$(date +%Y%m%d-%H%M%S)"
 
     echo ""
     echo -e "${YELLOW}=============================================="
@@ -266,7 +269,7 @@ confirm_deployment() {
 
 deploy_infrastructure() {
     local param_file="${PARAMS_DIR}/${ENVIRONMENT}.bicepparam"
-    local deployment_name="whatssummarize-${ENVIRONMENT}-$(date +%Y%m%d-%H%M%S)"
+    local deployment_name="convolens-${ENVIRONMENT}-$(date +%Y%m%d-%H%M%S)"
 
     log_info "Starting deployment: $deployment_name"
     log_info "Environment: $ENVIRONMENT"
@@ -347,8 +350,7 @@ post_deployment() {
 
 generate_env_file() {
     local env_file="${INFRA_DIR}/../apps/api/.env.azure"
-    local kv_name="kv${PROJECT_NAME}${ENVIRONMENT}"
-    kv_name="${kv_name//-/}"
+    local kv_name="${BASE}-kv"
 
     log_info "Generating .env.azure file..."
 
