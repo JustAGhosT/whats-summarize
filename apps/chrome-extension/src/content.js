@@ -1,14 +1,14 @@
 /**
- * WhatsSummarize Chrome Extension - Content Script
+ * ConvoLens Chrome Extension - Content Script
  *
  * POC Implementation: Chrome Extension Integration
  *
  * This content script runs on WhatsApp Web and extracts chat data
- * for analysis by the WhatsSummarize platform.
+ * for analysis by the ConvoLens platform.
  *
  * Integration Points:
  * - Communicates with background service worker
- * - Sends chat data to WhatsSummarize API via WebSocket
+ * - Sends chat data to ConvoLens API via WebSocket
  * - Injects UI elements for user interaction
  *
  * TODO: Production Hardening
@@ -32,8 +32,8 @@
 
 // Configuration
 const CONFIG = {
-  API_URL: 'https://api.whatssummarize.local', // TODO: Update for production
-  WS_URL: 'wss://api.whatssummarize.local/ws',
+  API_URL: 'https://api.convolens.local', // TODO: Update for production
+  WS_URL: 'wss://api.convolens.local/ws',
   SELECTORS: {
     // WhatsApp Web DOM selectors (may need updates as WhatsApp changes)
     chatList: '[data-testid="chat-list"]',
@@ -57,11 +57,11 @@ let currentChatId = null;
  * Initialize the extension
  */
 async function init() {
-  console.log('[WhatsSummarize] Content script initialized');
+  console.log('[ConvoLens] Content script initialized');
 
   // Check if we're on WhatsApp Web
   if (!window.location.hostname.includes('web.whatsapp.com')) {
-    console.log('[WhatsSummarize] Not on WhatsApp Web, exiting');
+    console.log('[ConvoLens] Not on WhatsApp Web, exiting');
     return;
   }
 
@@ -80,12 +80,12 @@ async function init() {
 }
 
 /**
- * Inject the WhatsSummarize UI elements
+ * Inject the ConvoLens UI elements
  */
 function injectUI() {
   // Create floating action button
   const fab = document.createElement('div');
-  fab.id = 'whatssummarize-fab';
+  fab.id = 'convolens-fab';
   fab.innerHTML = `
     <button id="ws-extract-btn" title="Extract current chat for summarization">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -143,7 +143,7 @@ async function handleExtractClick() {
       updateStatus(response.error || 'Failed to send', 'error');
     }
   } catch (error) {
-    console.error('[WhatsSummarize] Extraction error:', error);
+    console.error('[ConvoLens] Extraction error:', error);
     updateStatus('Error: ' + error.message, 'error');
   }
 }
@@ -186,7 +186,7 @@ async function extractCurrentChat() {
         messages.push(message);
       }
     } catch (e) {
-      console.warn('[WhatsSummarize] Failed to extract message:', e);
+      console.warn('[ConvoLens] Failed to extract message:', e);
     }
   }
 
@@ -283,7 +283,7 @@ function observeChatChanges() {
 
       if (newChatId !== currentChatId) {
         currentChatId = newChatId;
-        console.log('[WhatsSummarize] Chat changed:', currentChatId);
+        console.log('[ConvoLens] Chat changed:', currentChatId);
       }
     }
   });

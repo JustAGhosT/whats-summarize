@@ -13,7 +13,7 @@
 
   "host_permissions": [
     "https://web.whatsapp.com/*",
-    "https://api.convolens.io/*",
+    "https://api.convolens.com/*",
     "https://api.whatssummarize.com/*",
     "http://localhost:3001/*"
   ],

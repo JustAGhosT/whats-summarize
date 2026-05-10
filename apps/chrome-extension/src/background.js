@@ -1,9 +1,9 @@
 /**
- * WhatsSummarize Chrome Extension - Background Service Worker
+ * ConvoLens Chrome Extension - Background Service Worker
  *
  * POC Implementation: Chrome Extension Integration
  *
- * Handles communication between content script, popup, and WhatsSummarize API.
+ * Handles communication between content script, popup, and ConvoLens API.
  *
  * TODO: Production Hardening
  * - Implement secure token storage

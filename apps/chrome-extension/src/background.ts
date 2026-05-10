@@ -1,5 +1,5 @@
 /**
- * WhatsSummarize Chrome Extension - Background Service Worker (Production)
+ * ConvoLens Chrome Extension - Background Service Worker (Production)
  *
  * Handles all background operations for the extension:
  * - API communication with retry logic

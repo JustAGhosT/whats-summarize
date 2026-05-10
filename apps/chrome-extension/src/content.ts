@@ -1,5 +1,5 @@
 /**
- * WhatsSummarize Chrome Extension - Content Script (Production)
+ * ConvoLens Chrome Extension - Content Script (Production)
  *
  * Production-ready content script for WhatsApp Web message extraction.
  *
@@ -82,15 +82,15 @@ let isInitialized = false;
 async function init(): Promise<void> {
   // Guard against multiple initializations
   if (isInitialized) {
-    console.log('[WhatsSummarize] Already initialized, skipping');
+    console.log('[ConvoLens] Already initialized, skipping');
     return;
   }
 
-  console.log('[WhatsSummarize] Content script initializing...');
+  console.log('[ConvoLens] Content script initializing...');
 
   // Verify we're on WhatsApp Web
   if (!window.location.hostname.includes('web.whatsapp.com')) {
-    console.log('[WhatsSummarize] Not on WhatsApp Web, exiting');
+    console.log('[ConvoLens] Not on WhatsApp Web, exiting');
     return;
   }
 
@@ -102,7 +102,7 @@ async function init(): Promise<void> {
     const stored = await chrome.storage.local.get([STORAGE_KEYS.authToken]);
     authToken = stored[STORAGE_KEYS.authToken];
   } catch (error) {
-    console.warn('[WhatsSummarize] Failed to load auth token:', error);
+    console.warn('[ConvoLens] Failed to load auth token:', error);
   }
 
   // Inject UI elements
@@ -120,7 +120,7 @@ async function init(): Promise<void> {
   // Set up cleanup on page unload
   window.addEventListener('beforeunload', cleanup);
 
-  console.log('[WhatsSummarize] Content script initialized successfully');
+  console.log('[ConvoLens] Content script initialized successfully');
 }
 
 /**
@@ -132,7 +132,7 @@ function cleanup(): void {
     chatObserver = null;
   }
   isInitialized = false;
-  console.log('[WhatsSummarize] Cleanup completed');
+  console.log('[ConvoLens] Cleanup completed');
 }
 
 /**
@@ -153,7 +153,7 @@ async function waitForWhatsAppReady(timeout: number = 30000): Promise<void> {
 
       if (Date.now() - startTime > timeout) {
         // WhatsApp might still be loading or user needs to scan QR
-        console.warn('[WhatsSummarize] WhatsApp not fully loaded, will wait for chat selection');
+        console.warn('[ConvoLens] WhatsApp not fully loaded, will wait for chat selection');
         resolve();
         return;
       }
@@ -171,11 +171,11 @@ async function waitForWhatsAppReady(timeout: number = 30000): Promise<void> {
 
 function injectUI(): void {
   // Remove existing UI if present
-  document.getElementById('whatssummarize-fab')?.remove();
+  document.getElementById('convolens-fab')?.remove();
 
   // Create floating action button container
   const fab = document.createElement('div');
-  fab.id = 'whatssummarize-fab';
+  fab.id = 'convolens-fab';
   fab.innerHTML = `
     <button id="ws-extract-btn" class="ws-fab-btn" title="Extract current chat for summarization">
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -308,7 +308,7 @@ async function handleExtractClick(): Promise<void> {
       }
     }
   } catch (error) {
-    console.error('[WhatsSummarize] Extraction error:', error);
+    console.error('[ConvoLens] Extraction error:', error);
     updateStatus(`Error: ${(error as Error).message}`, 'error');
   } finally {
     state.isExtracting = false;
@@ -327,7 +327,7 @@ async function extractCurrentChatWithRetry(attempts: number = EXTRACTION_CONFIG.
       return await extractCurrentChat();
     } catch (error) {
       lastError = error as Error;
-      console.warn(`[WhatsSummarize] Extraction attempt ${i + 1} failed:`, error);
+      console.warn(`[ConvoLens] Extraction attempt ${i + 1} failed:`, error);
 
       if (i < attempts - 1) {
         const delay = EXTRACTION_CONFIG.retryDelayMs * Math.pow(2, i);
@@ -384,12 +384,12 @@ async function extractCurrentChat(): Promise<ExtractedChat> {
         messages.push(message);
       }
     } catch (error) {
-      console.warn('[WhatsSummarize] Failed to extract message:', error);
+      console.warn('[ConvoLens] Failed to extract message:', error);
     }
 
     // Check batch limit
     if (messages.length >= EXTRACTION_CONFIG.maxMessagesPerBatch) {
-      console.log('[WhatsSummarize] Reached batch limit');
+      console.log('[ConvoLens] Reached batch limit');
       break;
     }
   }
@@ -577,9 +577,9 @@ async function queueForOfflineSync(chatData: ExtractedChat): Promise<void> {
     }
 
     await chrome.storage.local.set({ [STORAGE_KEYS.pendingUploads]: pending });
-    console.log('[WhatsSummarize] Queued for offline sync');
+    console.log('[ConvoLens] Queued for offline sync');
   } catch (error) {
-    console.error('[WhatsSummarize] Failed to queue:', error);
+    console.error('[ConvoLens] Failed to queue:', error);
   }
 }
 
@@ -601,7 +601,7 @@ function observeChatChanges(): void {
 
       if (newChatId !== currentChatId) {
         currentChatId = newChatId;
-        console.log('[WhatsSummarize] Chat changed');
+        console.log('[ConvoLens] Chat changed');
       }
     }
   });
@@ -619,7 +619,7 @@ function observeChatChanges(): void {
     characterData: false,
   });
 
-  console.log('[WhatsSummarize] Chat observer started on:', chatContainer.tagName || 'body');
+  console.log('[ConvoLens] Chat observer started on:', chatContainer.tagName || 'body');
 }
 
 // =============================================================================

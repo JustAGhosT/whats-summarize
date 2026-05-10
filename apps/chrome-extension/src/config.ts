@@ -1,7 +1,7 @@
 /**
  * Chrome Extension Configuration
  *
- * Production-ready configuration management for the WhatsSummarize extension.
+ * Production-ready configuration management for the ConvoLens extension.
  * Supports both development and production environments.
  */
 
@@ -12,9 +12,9 @@ const isDevelopment = !chrome.runtime.getManifest().update_url;
 export const API_CONFIG = {
   // Production URLs (updated during build)
   production: {
-    apiUrl: 'https://api.whatssummarize.com',
-    wsUrl: 'wss://api.whatssummarize.com/ws',
-    dashboardUrl: 'https://app.whatssummarize.com',
+    apiUrl: 'https://api.convolens.com',
+    wsUrl: 'wss://api.convolens.com/ws',
+    dashboardUrl: 'https://app.convolens.com',
   },
   // Development URLs
   development: {

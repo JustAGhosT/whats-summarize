@@ -2,7 +2,7 @@
   "name": "@convolens/chrome-extension",
   "version": "1.0.0",
   "private": true,
-  "description": "WhatsSummarize Chrome Extension for WhatsApp Web",
+  "description": "ConvoLens Chrome Extension for WhatsApp Web",
   "scripts": {
     "build": "tsc && npm run copy-assets",
     "build:prod": "NODE_ENV=production tsc && npm run copy-assets",

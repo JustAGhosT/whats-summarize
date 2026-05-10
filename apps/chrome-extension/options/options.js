@@ -1,5 +1,5 @@
 /**
- * WhatsSummarize Chrome Extension - Options Page Script
+ * ConvoLens Chrome Extension - Options Page Script
  */
 
 // Storage keys (must match config.ts)
@@ -75,7 +75,7 @@ async function init() {
 
   // Set up links
   const isDev = !chrome.runtime.getManifest().update_url;
-  const baseUrl = isDev ? 'http://localhost:3000' : 'https://app.whatssummarize.com';
+  const baseUrl = isDev ? 'http://localhost:3000' : 'https://app.convolens.com';
   elements.helpLink.href = `${baseUrl}/help`;
   elements.privacyLink.href = `${baseUrl}/privacy`;
 }
@@ -116,7 +116,7 @@ async function loadAuthStatus() {
 
 function handleLogin() {
   const isDev = !chrome.runtime.getManifest().update_url;
-  const baseUrl = isDev ? 'http://localhost:3000' : 'https://app.whatssummarize.com';
+  const baseUrl = isDev ? 'http://localhost:3000' : 'https://app.convolens.com';
   chrome.tabs.create({ url: `${baseUrl}/login?extension=true` });
 }
 

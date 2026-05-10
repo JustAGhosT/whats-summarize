@@ -1,5 +1,5 @@
 /**
- * WhatsSummarize Chrome Extension - Popup Script
+ * ConvoLens Chrome Extension - Popup Script
  */
 
 // DOM Elements

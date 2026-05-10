@@ -1,5 +1,5 @@
 /**
- * WhatsSummarize Chrome Extension Styles (Production)
+ * ConvoLens Chrome Extension Styles (Production)
  *
  * Design System Adherence:
  * - Uses WhatsApp brand colors from Phase 0.5
@@ -13,7 +13,7 @@
    Container
    ============================================================================= */
 
-#whatssummarize-fab {
+#convolens-fab {
   position: fixed;
   bottom: 24px;
   right: 24px;
@@ -240,7 +240,7 @@
    ============================================================================= */
 
 @media (max-width: 768px) {
-  #whatssummarize-fab {
+  #convolens-fab {
     bottom: 16px;
     right: 16px;
   }

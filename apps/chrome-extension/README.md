@@ -1,12 +1,12 @@
-# WhatsSummarize Chrome Extension
+# ConvoLens Chrome Extension
 
 Production-ready Chrome extension for WhatsApp Web integration, enabling AI-powered chat summarization.
 
 ## Features
 
 - **Message Extraction** - Extract chat messages from WhatsApp Web with robust DOM selection
-- **AI Summarization** - Send conversations to WhatsSummarize for intelligent summaries
-- **Secure Authentication** - OAuth integration with WhatsSummarize accounts
+- **AI Summarization** - Send conversations to ConvoLens for intelligent summaries
+- **Secure Authentication** - OAuth integration with ConvoLens accounts
 - **Offline Support** - Queue extractions when offline, sync when connected
 - **Settings Management** - Configurable options via dedicated settings page
 - **Rate Limiting** - Built-in protection against excessive API calls
@@ -45,8 +45,8 @@ npm run package  # Creates convolens-extension.zip
 
 1. Open [WhatsApp Web](https://web.whatsapp.com)
 2. Log in to your WhatsApp account
-3. Click the WhatsSummarize extension icon in the toolbar
-4. Sign in with your WhatsSummarize account
+3. Click the ConvoLens extension icon in the toolbar
+4. Sign in with your ConvoLens account
 5. Navigate to any chat
 6. Click the floating "Summarize" button or use the popup
 
@@ -79,7 +79,7 @@ The extension supports custom API endpoints via the settings page. Environment-a
 | Environment | API URL | Dashboard URL |
 |------------|---------|---------------|
 | Development | `http://localhost:3001` | `http://localhost:3000` |
-| Production | `https://api.whatssummarize.com` | `https://app.whatssummarize.com` |
+| Production | `https://api.convolens.com` | `https://app.convolens.com` |
 
 ## Development
 
@@ -155,7 +155,7 @@ The extension uses data-testid selectors (most stable) with fallback class selec
 ### Extraction fails
 
 - Check that a chat is open (not just the chat list)
-- Verify you're logged into WhatsSummarize
+- Verify you're logged into ConvoLens
 - Check the browser console for errors
 
 ### Rate limit errors
