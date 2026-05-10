@@ -60,8 +60,16 @@ export type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // Storage key for user data
-const USER_STORAGE_KEY = 'whatssummarize_user'
-const SESSION_STORAGE_KEY = 'whatssummarize_session'
+const USER_STORAGE_KEY = 'convolens_user'
+const SESSION_STORAGE_KEY = 'convolens_session'
+
+// Legacy storage keys from the WhatsSummarize → ConvoLens rename.
+// Kept here purely so the migration shim below can copy values forward
+// without signing existing users out. These constants (and the migration
+// shim) should be removed ~30 days after the rename ships, or once
+// telemetry confirms zero legacy reads.
+const OLD_USER_STORAGE_KEY = 'whatssummarize_user'
+const OLD_SESSION_STORAGE_KEY = 'whatssummarize_session'
 
 /**
  * Creates a Supabase-like client interface
@@ -174,6 +182,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Initialize authentication state on mount
   useEffect(() => {
     let isMounted = true
+
+    // One-shot localStorage migration from `whatssummarize_*` →
+    // `convolens_*`. Without this, every existing user would be signed out
+    // on the deploy that ships the brand rename. Safe to run on every
+    // mount: after the first run, the legacy keys are gone, so subsequent
+    // mounts are no-ops. Remove this block (and the OLD_* constants
+    // above) ~30 days after deploy.
+    if (typeof window !== 'undefined') {
+      try {
+        const migrations: Array<[string, string]> = [
+          [OLD_USER_STORAGE_KEY, USER_STORAGE_KEY],
+          [OLD_SESSION_STORAGE_KEY, SESSION_STORAGE_KEY],
+        ]
+        for (const [oldK, newK] of migrations) {
+          const legacy = localStorage.getItem(oldK)
+          if (legacy === null) continue
+          const existing = localStorage.getItem(newK)
+          if (existing === null) {
+            localStorage.setItem(newK, legacy)
+          }
+          localStorage.removeItem(oldK)
+        }
+      } catch (err) {
+        // localStorage can throw in private-mode / quota-exceeded
+        // scenarios — never let that block auth init.
+        console.warn('[AuthContext] Legacy storage migration skipped:', err)
+      }
+    }
 
     const initializeAuth = async () => {
       try {

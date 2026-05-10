@@ -4,7 +4,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Project Overview
 
-**ConvoLens** (formerly WhatsSummarize) is an AI-powered conversation analysis platform that transforms messaging exports into insights. Users upload chat exports from WhatsApp (and soon Telegram, Discord, etc.) to visualize communication patterns and generate AI-driven summaries.
+**ConvoLens** is an AI-powered conversation analysis platform that transforms messaging exports into insights. Users upload chat exports from WhatsApp (and soon Telegram, Discord, etc.) to visualize communication patterns and generate AI-driven summaries. (Previously known as **WhatsSummarize**.)
 
 ## Development Commands
 
@@ -50,7 +50,7 @@ pnpm clean                 # Clean build artifacts
 This is a **Turborepo monorepo** with multiple apps and shared packages:
 
 ```
-whatssummarize/
+convolens/
 ├── apps/
 │   ├── web/              # Next.js 15 frontend (App Router)
 │   ├── api/              # Express.js + TypeORM backend
@@ -110,7 +110,7 @@ The architecture is designed to support multiple messaging platforms:
 4. Add validation function like `isValidTelegramExport()`
 
 #### Brand Identity (ConvoLens)
-**Current State**: In transition from "WhatsSummarize" to "ConvoLens"
+**Current State**: ConvoLens (renamed from "WhatsSummarize")
 - **Colors**: Deep Purple (#6B46C1) + Bright Cyan (#06B6D4) + Soft Lavender (#C4B5FD)
 - **Tagline**: "See Your Conversations Clearly"
 - **Design System**: Migrating from Ant Design to pure Tailwind + Shadcn/UI

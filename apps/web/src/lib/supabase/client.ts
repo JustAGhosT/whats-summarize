@@ -62,7 +62,7 @@ function createMockBrowserClient() {
     expires_at: Date.now() + 3600000,
     user: {
       id: 'mock-user-id',
-      email: 'dev@whatssummarize.local',
+      email: 'dev@convolens.local',
       user_metadata: { name: 'Development User' },
       app_metadata: {},
       aud: 'authenticated',

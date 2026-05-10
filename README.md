@@ -1,6 +1,6 @@
-# ConvoLens (formerly WhatsSummarize)
+# ConvoLens
 
-> **Note:** We're rebranding to ConvoLens! This platform is in the process of transitioning from "WhatsSummarize" to our new name. [Learn more about the rebrand →](NAMING_RECOMMENDATIONS.md)
+> **Note:** This project was previously known as **WhatsSummarize**. The brand rename is now landing in stages — see [NAMING_RECOMMENDATIONS.md](NAMING_RECOMMENDATIONS.md) for context.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Next.js](https://img.shields.io/badge/Next.js%2015-000000?style=flat&logo=nextdotjs&logoColor=white)](https://nextjs.org/)
@@ -15,7 +15,7 @@ A comprehensive platform for analyzing and summarizing conversations across mess
 
 ## 🚀 Project Overview
 
-**ConvoLens** (formerly WhatsSummarize) allows users to unlock insights from their conversation history across messaging platforms. By uploading standard `.txt` export files, users can visualize communication patterns, activity levels, and generate AI-driven qualitative summaries.
+**ConvoLens** allows users to unlock insights from their conversation history across messaging platforms. By uploading standard `.txt` export files, users can visualize communication patterns, activity levels, and generate AI-driven qualitative summaries.
 
 ### Brand Identity
 
@@ -86,8 +86,8 @@ For a detailed analysis, see [Technology Stack Assessment](docs/PHASE_1_TECH_STA
 1.  **Clone:**
 
     ```bash
-    git clone https://github.com/JustAGhosT/whatssummarize.git
-    cd whatssummarize
+    git clone https://github.com/JustAGhosT/whats-summarize.git
+    cd whats-summarize
     ```
 
 2.  **Install:**

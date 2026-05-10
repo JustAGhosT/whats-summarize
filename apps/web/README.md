@@ -1,6 +1,6 @@
-# WhatsApp Group Monitor - Frontend
+# ConvoLens - Frontend
 
-This is the frontend for the WhatsApp Group Monitor application, built with Next.js, TypeScript, and Ant Design. It provides a user interface for monitoring and interacting with WhatsApp groups.
+This is the frontend for ConvoLens (formerly WhatsSummarize), built with Next.js, TypeScript, and Ant Design. It provides the user interface for uploading messaging exports, monitoring groups, and viewing AI-generated conversation summaries.
 
 ## Features
 

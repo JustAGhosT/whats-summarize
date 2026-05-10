@@ -1,10 +1,15 @@
-# WhatsSummarize Infrastructure
+# ConvoLens Infrastructure
 
-Azure infrastructure as code using Bicep templates for WhatsSummarize.
+Azure infrastructure as code using Bicep templates for ConvoLens.
+
+> **Note:** Azure resource names (e.g. `rg-whatssummarize-*`, `kvwhatssummarizedev`,
+> `cosmos-whatssummarize-dev`, `oai-whatssummarize-dev`) intentionally still
+> reference the legacy project name — renaming live Azure resources is a
+> separate, user-driven decision tracked in PR4 / cross-repo follow-ups.
 
 ## Overview
 
-This directory contains all infrastructure configuration for deploying WhatsSummarize to Azure:
+This directory contains all infrastructure configuration for deploying ConvoLens to Azure:
 
 ```
 infra/

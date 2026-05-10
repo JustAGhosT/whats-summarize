@@ -1,4 +1,4 @@
-# WhatsApp Summarizer - User Guide
+# ConvoLens - User Guide
 
 ## Getting Started
 
@@ -10,7 +10,7 @@
 
 ### Account Setup
 
-1. Visit [WhatsApp Summarizer](https://app.whatssummarize.com)
+1. Visit [ConvoLens](https://app.convolens.com)
 2. Click "Sign Up" and create an account
 3. Verify your email address
 4. Complete your profile setup
@@ -24,7 +24,7 @@
 3. Tap ⋮ (Android) or (iPhone)
 4. Select More > Export chat
 5. Choose "Without Media"
-6. Share to WhatsApp Summarizer app
+6. Share to the ConvoLens app
 
 ### 2. Viewing Summaries
 
@@ -107,12 +107,12 @@
 
 ### Help Center
 
-Visit our [Help Center](https://help.whatssummarize.com) for articles and guides.
+Visit our [Help Center](https://help.convolens.com) for articles and guides.
 
 ### Contact Us
 
-- **Email**: [Email](mailto:support@whatssummarize.com)
-- **Twitter**: [@whatssummarize](https://twitter.com/whatssummarize)
+- **Email**: [Email](mailto:support@convolens.com)
+- **Twitter**: [@convolens](https://twitter.com/convolens)
 - **Live Chat**: Available in the app
 
 ## FAQ
@@ -135,4 +135,4 @@ Currently web-only, but mobile apps are coming soon.
 
 ## Feedback
 
-We'd love to hear your feedback! Use the in-app feedback form or email us at [feedback@whatssummarize.com](mailto:feedback@whatssummarize.com)
+We'd love to hear your feedback! Use the in-app feedback form or email us at [feedback@convolens.com](mailto:feedback@convolens.com)

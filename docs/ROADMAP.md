@@ -138,14 +138,14 @@
 
 ### How to Contribute
 
-1. Check the [GitHub Issues](https://github.com/JustAGhosT/whatssummarize/issues) for open tasks
+1. Check the [GitHub Issues](https://github.com/JustAGhosT/whats-summarize/issues) for open tasks
 2. Fork the repository and create a feature branch
 3. Submit a pull request with your changes
 4. Ensure all tests pass and add new tests as needed
 
 ### Reporting Issues
 
-Please report any bugs or feature requests using the [GitHub Issue Tracker](https://github.com/JustAGhosT/whatssummarize/issues).
+Please report any bugs or feature requests using the [GitHub Issue Tracker](https://github.com/JustAGhosT/whats-summarize/issues).
 
 ## Changelog
 

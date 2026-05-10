@@ -1,6 +1,6 @@
 # Authentication System Documentation
 
-This document outlines the authentication system implemented in the WhatsApp Summarizer application.
+This document outlines the authentication system implemented in the ConvoLens application.
 
 ## Features
 
@@ -20,7 +20,7 @@ Create a `.env.local` file in the root directory with the following variables:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-NEXT_PUBLIC_APP_NAME=whatssummarize
+NEXT_PUBLIC_APP_NAME=convolens
 ```
 
 ### Supabase Configuration

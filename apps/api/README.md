@@ -1,6 +1,6 @@
-# WhatsApp Summarizer Backend
+# ConvoLens Backend
 
-A robust backend service for processing and summarizing WhatsApp chat exports. Built with Node.js, TypeScript, Express, and TypeORM.
+A robust backend service for processing and summarizing WhatsApp chat exports. Built with Node.js, TypeScript, Express, and TypeORM. (Formerly WhatsSummarize.)
 
 ## ✨ Features
 
@@ -30,8 +30,8 @@ A robust backend service for processing and summarizing WhatsApp chat exports. B
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/JustAGhosT/whatssummarize.git
-   cd whatssummarize/backend
+   git clone https://github.com/JustAGhosT/whats-summarize.git
+   cd whats-summarize/apps/api
    ```
 
 2. Install dependencies:
@@ -162,8 +162,8 @@ This project uses Husky for Git hooks. Pre-commit and pre-push hooks are configu
 Build and run using Docker:
 
 ```bash
-docker build -t whatssummarize-backend .
-docker run -p 3001:3001 whatssummarize-backend
+docker build -t convolens-api .
+docker run -p 3001:3001 convolens-api
 ```
 
 ### Environment Variables for Production

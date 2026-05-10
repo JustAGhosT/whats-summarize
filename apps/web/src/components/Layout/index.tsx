@@ -57,7 +57,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, showSidebar = true }) 
             />
           )}
           <Link href="/" className="logo">
-            <Title level={4} style={{ color: '#fff', margin: 0 }}>WhatsSummarize</Title>
+            <Title level={4} style={{ color: '#fff', margin: 0 }}>ConvoLens</Title>
           </Link>
         </div>
         

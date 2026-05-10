@@ -120,7 +120,7 @@ const LandingPage = () => {
                   <div className="relative shadow-2xl rounded-2xl overflow-hidden border-8 border-white dark:border-gray-800 hover-card">
                     <Image 
                       src="/images/dashboard.png" 
-                      alt="WhatsSummarize Dashboard" 
+                      alt="ConvoLens Dashboard"
                       width={600} 
                       height={400} 
                       className="w-full h-auto"
@@ -184,7 +184,7 @@ const LandingPage = () => {
             <div className="feature-card">
               <div className="bg-gradient-to-br from-green-500 to-green-600 dark:from-green-600 dark:to-green-700 p-6 rounded-xl shadow-md text-white hover-card">
                 <h3 className="text-xl font-semibold mb-2">Ready to get started?</h3>
-                <p className="mb-4">Try WhatsSummarize today and gain new insights from your conversations.</p>
+                <p className="mb-4">Try ConvoLens today and gain new insights from your conversations.</p>
                 <Link 
                   href="/signup" 
                   className="inline-block px-5 py-2 bg-white text-green-600 font-medium rounded-lg hover:bg-gray-100 transition-colors duration-200 btn-glow"
@@ -205,14 +205,14 @@ const LandingPage = () => {
               Loved by users worldwide
             </h2>
             <p className="mt-4 text-xl text-gray-600 dark:text-gray-400">
-              See what people are saying about WhatsSummarize
+              See what people are saying about ConvoLens
             </p>
           </div>
 
           <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {[
               {
-                quote: "WhatsSummarize helped me understand communication patterns in my team chat that I never noticed before.",
+                quote: "ConvoLens helped me understand communication patterns in my team chat that I never noticed before.",
                 author: "Sarah J.",
                 role: "Project Manager"
               },

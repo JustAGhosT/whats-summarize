@@ -1,4 +1,4 @@
-# WhatsApp Summarizer - Runbook
+# ConvoLens - Runbook
 
 ## Table of Contents
 - [Overview](#overview)
@@ -11,7 +11,7 @@
 - [Security](#security)
 
 ## Overview
-This runbook contains operational procedures for the WhatsApp Summarizer application.
+This runbook contains operational procedures for the ConvoLens application.
 
 ## Prerequisites
 - Access to Supabase dashboard
@@ -24,8 +24,8 @@ This runbook contains operational procedures for the WhatsApp Summarizer applica
 ### Local Development Setup
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/whatssummarize.git
-cd whatssummarize
+git clone https://github.com/JustAGhosT/whats-summarize.git
+cd whats-summarize
 
 # Install dependencies
 pnpm install
@@ -158,5 +158,5 @@ supabase db reset
 ## Contact Information
 - **Primary On-call**: [Name] - [Phone] - [Email]
 - **Secondary On-call**: [Name] - [Phone] - [Email]
-- **Infrastructure Team**: infra@whatssummarize.com
-- **Security Team**: security@whatssummarize.com
+- **Infrastructure Team**: infra@convolens.com
+- **Security Team**: security@convolens.com

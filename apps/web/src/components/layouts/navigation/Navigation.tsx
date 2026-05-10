@@ -163,7 +163,7 @@ export function Navigation() {
           {/* Logo */}
           <div className={styles.logo}>
             <Link href="/" className={styles.logoLink}>
-              <span className={styles.logoText}>WhatsSummarize</span>
+              <span className={styles.logoText}>ConvoLens</span>
             </Link>
           </div>
 

@@ -8,8 +8,18 @@ import { Inter } from "next/font/google"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "WhatsSummarize - WhatsApp Conversation Analyzer",
+  title: "ConvoLens - WhatsApp Conversation Analyzer",
   description: "Analyze and summarize your WhatsApp conversations with AI",
+  openGraph: {
+    title: "ConvoLens - WhatsApp Conversation Analyzer",
+    description: "Analyze and summarize your WhatsApp conversations with AI",
+    siteName: "ConvoLens",
+  },
+  twitter: {
+    title: "ConvoLens - WhatsApp Conversation Analyzer",
+    description: "Analyze and summarize your WhatsApp conversations with AI",
+    card: "summary_large_image",
+  },
 }
 
 export default function RootLayout({ children }) {

@@ -16,12 +16,12 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Logo and description */}
           <div className="col-span-1 md:col-span-2">
-            <h2 className="text-2xl font-bold text-green-600 dark:text-green-400 text-gradient">WhatsSummarize</h2>
+            <h2 className="text-2xl font-bold text-green-600 dark:text-green-400 text-gradient">ConvoLens</h2>
             <p className="mt-4 text-gray-600 dark:text-gray-400 max-w-md">
               A powerful tool to analyze and summarize your WhatsApp conversations, providing insights and analytics about your chats.
             </p>
             <div className="mt-6 flex space-x-4">
-              <Link href="https://github.com/JustAGhosT/whatssummarize" className="text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 hover-card p-2 rounded-full">
+              <Link href="https://github.com/JustAGhosT/whats-summarize" className="text-gray-500 hover:text-gray-900 dark:hover:text-gray-300 hover-card p-2 rounded-full">
                 <span className="sr-only">GitHub</span>
                 <Github className="h-6 w-6" />
               </Link>
@@ -83,7 +83,7 @@ export function Footer() {
         
         <div className="mt-12 border-t border-gray-200 dark:border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            &copy; {new Date().getFullYear()} WhatsSummarize. All rights reserved.
+            &copy; {new Date().getFullYear()} ConvoLens. All rights reserved.
           </p>
           <div className="mt-4 md:mt-0 flex space-x-6">
             <Link href="/privacy" className="text-sm text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors duration-200">

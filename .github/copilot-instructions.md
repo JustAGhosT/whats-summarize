@@ -1,4 +1,4 @@
-# WhatsApp Conversation Summarizer - AI Assistant Instructions
+# ConvoLens (formerly WhatsApp Conversation Summarizer) - AI Assistant Instructions
 
 ## Project Overview
 A comprehensive platform for analyzing and summarizing conversations across multiple messaging platforms, starting with WhatsApp. The application provides AI-powered summaries of chat histories with a modern, secure, and scalable architecture.
