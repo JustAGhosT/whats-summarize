@@ -1,11 +1,11 @@
 "use client"
 
 import { ShareModal } from "@ui/common/share-modal"
-import { useApp } from "@whatssummarize/contexts"
+import { useApp } from "@convolens/contexts"
 import { useState } from "react"
 import styles from "./summary-card.module.css"
 
-import type { Summary as AppSummary } from "@whatssummarize/contexts/types"
+import type { Summary as AppSummary } from "@convolens/contexts/types"
 
 interface Summary extends Omit<AppSummary, 'participants'> {
   status?: "draft" | "generated" | "shared"

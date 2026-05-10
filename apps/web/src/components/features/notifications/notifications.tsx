@@ -3,7 +3,7 @@
 import { useState, useEffect, JSX } from "react"
 import { useRouter } from "next/navigation"
 import { NotificationBase, NotificationsPageProps, NotificationType } from "@/types/notifications"
-import { useApp } from "@whatssummarize/contexts"
+import { useApp } from "@convolens/contexts"
 import { Button } from "@/components/ui/button"
 import { Check, Trash2, Clock, BellRing, FileText, Inbox, AlertCircle } from "lucide-react"
 import { mockNotifications } from "@/data/mockNotifications"

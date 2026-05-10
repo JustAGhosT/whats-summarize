@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react"
-import { useApp } from "@whatssummarize/contexts"
+import { useApp } from "@convolens/contexts"
 import { 
   filterAndSortSummaries, 
   calculateDashboardStats, 

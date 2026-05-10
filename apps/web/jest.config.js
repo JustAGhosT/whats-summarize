@@ -24,12 +24,12 @@ const customJestConfig = {
   // Module name mapping - must match your tsconfig.json paths
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/apps/web/src/$1',
-    '^@whatssummarize/ui$': '<rootDir>/packages/ui/src/index.ts',
-    '^@whatssummarize/ui/(.*)$': '<rootDir>/packages/ui/src/$1',
-    '^@whatssummarize/utils$': '<rootDir>/packages/utils/src/index.ts',
-    '^@whatssummarize/utils/(.*)$': '<rootDir>/packages/utils/src/$1',
-    '^@whatssummarize/contexts$': '<rootDir>/packages/contexts/src/index.ts',
-    '^@whatssummarize/contexts/(.*)$': '<rootDir>/packages/contexts/src/$1',
+    '^@convolens/ui$': '<rootDir>/packages/ui/src/index.ts',
+    '^@convolens/ui/(.*)$': '<rootDir>/packages/ui/src/$1',
+    '^@convolens/utils$': '<rootDir>/packages/utils/src/index.ts',
+    '^@convolens/utils/(.*)$': '<rootDir>/packages/utils/src/$1',
+    '^@convolens/contexts$': '<rootDir>/packages/contexts/src/index.ts',
+    '^@convolens/contexts/(.*)$': '<rootDir>/packages/contexts/src/$1',
     '^@ui/(.*)$': '<rootDir>/apps/web/src/components/$1',
     '^@utils/(.*)$': '<rootDir>/apps/web/src/lib/$1',
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy',

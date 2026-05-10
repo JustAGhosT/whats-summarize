@@ -1,6 +1,6 @@
 "use client"
 
-import type { PersonalSummary } from "@whatssummarize/contexts/types"
+import type { PersonalSummary } from "@convolens/contexts/types"
 import styles from "./personal-summary-card.module.css"
 
 interface PersonalSummaryCardProps {

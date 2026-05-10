@@ -12,27 +12,27 @@ const SOURCE_DIR = path.resolve(__dirname, '..', '..', 'apps', 'web', 'src').rep
 const IMPORT_MAPPINGS = [
   { 
     pattern: /^@\/components\/ui\/(.*)/, 
-    replacement: '@whatssummarize/ui/components/$1',
+    replacement: '@convolens/ui/components/$1',
     description: 'UI components'
   },
   { 
     pattern: /^@\/lib\/utils/, 
-    replacement: '@whatssummarize/ui/lib/utils',
+    replacement: '@convolens/ui/lib/utils',
     description: 'Utility functions'
   },
   { 
     pattern: /^@\/hooks\/use-toast/, 
-    replacement: '@whatssummarize/ui/hooks/use-toast',
+    replacement: '@convolens/ui/hooks/use-toast',
     description: 'Toast hook'
   },
   { 
     pattern: /^@\/hooks\/use-click-outside/, 
-    replacement: '@whatssummarize/ui/hooks/use-click-outside',
+    replacement: '@convolens/ui/hooks/use-click-outside',
     description: 'Click outside hook'
   },
   { 
     pattern: /^@\/hooks\/use-dark-mode/, 
-    replacement: '@whatssummarize/ui/hooks/use-dark-mode',
+    replacement: '@convolens/ui/hooks/use-dark-mode',
     description: 'Dark mode hook'
   }
 ];

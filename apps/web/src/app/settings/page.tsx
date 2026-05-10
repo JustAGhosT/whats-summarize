@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAuth } from "@whatssummarize/contexts";
+import { useAuth } from "@convolens/contexts";
 import { PageHeader } from "@/components/ui/page-header";
 import { Button } from "@/components/ui/button";
 import { StyledCard } from "@/components/ui/styled-card";

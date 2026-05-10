@@ -1,5 +1,5 @@
 {
-  "name": "@whatssummarize/scripts",
+  "name": "@convolens/scripts",
   "version": "0.1.0",
   "private": true,
   "description": "Development and maintenance scripts for the project",

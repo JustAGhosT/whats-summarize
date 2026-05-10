@@ -64,8 +64,8 @@
       "@ui/*": ["./packages/ui/src/*"],
       "@config/*": ["./packages/config/src/*"],
       "@utils/*": ["./packages/utils/src/*"],
-      "@whatssummarize/contexts": ["./packages/contexts/src/index.ts"],
-      "@whatssummarize/contexts/*": ["./packages/contexts/src/*"]
+      "@convolens/contexts": ["./packages/contexts/src/index.ts"],
+      "@convolens/contexts/*": ["./packages/contexts/src/*"]
     }
   },
   "exclude": ["node_modules", "dist", "**/dist", "**/node_modules", "**/coverage"],

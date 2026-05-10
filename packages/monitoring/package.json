@@ -1,5 +1,5 @@
 {
-  "name": "@whatssummarize/monitoring",
+  "name": "@convolens/monitoring",
   "version": "0.1.0",
   "private": true,
   "description": "Error monitoring and observability package for WhatsSummarize",

@@ -1,5 +1,5 @@
 import { Header, Footer } from "@/components/layouts"
-import { AuthProvider, AppProvider } from "@whatssummarize/contexts"
+import { AuthProvider, AppProvider } from "@convolens/contexts"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"

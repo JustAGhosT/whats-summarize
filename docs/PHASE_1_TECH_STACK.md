@@ -16,7 +16,7 @@
     *   **Primary:** Tailwind CSS 3.4
     *   **Component Library:** Hybrid of `shadcn/ui` (via `packages/ui`) and `antd` (Ant Design 5.26).
     *   **Icons:** Lucide React (via shadcn) & Ant Design Icons.
-*   **State Management:** React Context (via `@whatssummarize/contexts`) + Local State.
+*   **State Management:** React Context (via `@convolens/contexts`) + Local State.
 *   **Data Fetching:** Standard `fetch` / Axios.
 *   **Authentication:** Supabase Auth (SSR).
 

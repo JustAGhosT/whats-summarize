@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { toast } from '@/components/ui/toaster';
-import { useAuth } from '@whatssummarize/contexts';
+import { useAuth } from '@convolens/contexts';
 import { cn } from '@/lib/utils';
 import { AlertCircle, Eye, EyeOff, Github, Loader2, Lock, Mail } from 'lucide-react';
 import Link from 'next/link';

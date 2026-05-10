@@ -2,7 +2,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { useApp } from "@whatssummarize/contexts"
+import { useApp } from "@convolens/contexts"
 import { DashboardStats } from "./DashboardStats"
 import { DashboardControls } from "./DashboardControls"
 import { SummariesList } from "./SummariesList"

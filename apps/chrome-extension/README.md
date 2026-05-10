@@ -38,7 +38,7 @@ Production-ready Chrome extension for WhatsApp Web integration, enabling AI-powe
 
 ```bash
 npm run build:prod
-npm run package  # Creates whatssummarize-extension.zip
+npm run package  # Creates convolens-extension.zip
 ```
 
 ## Usage
