@@ -239,7 +239,7 @@ jobs:
             az group create \
               --name "$RG_NAME" \
               --location "${{ env.AZURE_LOCATION }}" \
-              --tags project=whatssummarize environment=${{ matrix.environment }} managedBy=github-actions
+              --tags project=convolens environment=${{ matrix.environment }} managedBy=github-actions
           fi
 
       - name: Deploy Infrastructure

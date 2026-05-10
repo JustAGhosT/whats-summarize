@@ -1,5 +1,5 @@
 {
-  "name": "WhatsApp Conversation Summarizer Development Environment",
+  "name": "ConvoLens Development Environment",
   "image": "mcr.microsoft.com/devcontainers/typescript-node:20",
 
   "features": {
