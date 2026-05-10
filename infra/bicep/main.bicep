@@ -1,7 +1,7 @@
 // =============================================================================
-// WhatsSummarize - Azure Infrastructure (Main Template)
+// ConvoLens - Azure Infrastructure (Main Template)
 // =============================================================================
-// This template deploys all Azure resources required for WhatsSummarize.
+// This template deploys all Azure resources required for ConvoLens.
 // Use with appropriate parameter files for each environment.
 //
 // Resources deployed:
@@ -30,10 +30,15 @@ param environment string = 'dev'
 @description('Azure region for resources')
 param location string = resourceGroup().location
 
-@description('Project name used for resource naming')
+@description('Project name used for resource naming. Resource names retain the legacy "whatssummarize" prefix until a separate user-driven Azure rename decision lands.')
 @minLength(3)
 @maxLength(15)
 param projectName string = 'whatssummarize'
+
+@description('Logical database name used for Cosmos DB (and future Azure SQL). Decoupled from projectName so the brand rename can land without renaming Azure resources. Override at deploy time only when migrating data.')
+@minLength(3)
+@maxLength(40)
+param databaseName string = 'convolens'
 
 @description('Enable Azure OpenAI deployment')
 param enableOpenAI bool = true
@@ -152,7 +157,7 @@ module cosmosDB 'modules/cosmos-db.bicep' = if (enableCosmosDB) {
     name: 'cosmos-${resourcePrefix}'
     location: location
     tags: tags
-    databaseName: projectName
+    databaseName: databaseName
     containers: [
       {
         name: 'users'

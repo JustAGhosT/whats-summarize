@@ -130,7 +130,7 @@ export function getAzureCosmosDBConfig(): AzureCosmosDBConfig | null {
   return {
     endpoint,
     key,
-    databaseName: process.env.AZURE_COSMOS_DATABASE || 'whatssummarize',
+    databaseName: process.env.AZURE_COSMOS_DATABASE || 'convolens',
     containerName: process.env.AZURE_COSMOS_CONTAINER || 'chats',
   };
 }
