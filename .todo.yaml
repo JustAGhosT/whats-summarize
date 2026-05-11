@@ -1,0 +1,48 @@
+version: "1.0"
+scope: todo
+repo: neuralliquid/convolens
+updated_at: 2026-05-11
+# Seeded from org-meta/roadmaps/convolens.md (Critical Gaps section).
+
+tasks:
+  - id: wire-summary-service
+    title: "Wire SummaryService to upload route — currently fully implemented but never called"
+    description: "SummaryService is complete (Azure → OpenAI → Anthropic → Mock cascade with retries) but no POST /api/chat-export/:id/summarize endpoint exists. Upload route returns raw parse counts without triggering summarisation."
+    priority: high
+    status: todo
+    tags: [api, summarization, gap]
+
+  - id: android-whatsapp-parser
+    title: "Add Android WhatsApp format parser — bracket-less format silently drops messages"
+    description: "Current regex uses bracket delimiters (^\\[…\\]) — iOS/desktop only. Android format (no brackets, e.g. 18/03/2026, 14:30 - Sender: message) silently drops all messages. Multi-line messages also silently discarded."
+    priority: high
+    status: todo
+    tags: [parser, android, gap]
+
+  - id: persist-parsed-data
+    title: "Persist parsed data to DB after upload"
+    description: "apps/api/src/routes/chat-export.routes.ts:54 has 'TODO: Store chatData in the database' — parsed data returned directly without saving."
+    priority: high
+    status: todo
+    tags: [database, persistence, gap]
+
+  - id: chrome-extension-route
+    title: "Implement POST /api/chat-export/extension — Chrome extension calls a 404 route"
+    description: "apps/chrome-extension/src/background.ts:119 calls a route that does not exist. Extension is fully built but the endpoint returns 404."
+    priority: high
+    status: todo
+    tags: [chrome-extension, api, gap]
+
+  - id: fix-session-accesstoken
+    title: "Fix non-standard session.accessToken usage in upload proxy"
+    description: "apps/web/src/app/api/chat-export/upload/route.ts uses session.accessToken which is not a standard NextAuth field. Replace with proper NextAuth/Supabase token extraction."
+    priority: medium
+    status: todo
+    tags: [auth, hygiene, gap]
+
+  - id: real-upload-progress
+    title: "Replace fake upload progress with real XHR progress events"
+    description: "apps/web/src/hooks/useFileUpload.ts has a progress state that never increments between 0 and 100 — replace with XMLHttpRequest upload.onprogress."
+    priority: low
+    status: todo
+    tags: [ui, hygiene]

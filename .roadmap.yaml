@@ -1,0 +1,49 @@
+version: "1.0"
+scope: roadmap
+repo: neuralliquid/convolens
+updated_at: 2026-05-11
+# Seeded from org-meta/roadmaps/convolens.md (week-by-week plan).
+
+tasks:
+  - id: week1-harden-upload
+    title: "Week 1 — Harden file upload + add DB persistence (TypeORM ChatExport entity, real progress, fix auth token)"
+    priority: high
+    status: todo
+    quarter: "2026-Q2"
+    tags: [upload, persistence, auth]
+
+  - id: week2-multiformat-parser
+    title: "Week 2 — Multi-format parser: Android bracketless, multi-line messages, locale-aware date parsing"
+    priority: high
+    status: todo
+    quarter: "2026-Q2"
+    tags: [parser, android, locale]
+
+  - id: week3-summarisation
+    title: "Week 3 — Wire summarisation: POST /api/chat-export/:id/summarize, real SSE streaming, summary-cache LRU"
+    priority: high
+    status: todo
+    quarter: "2026-Q2"
+    tags: [summarization, sse, cache]
+
+  - id: week4-telegram-discord
+    title: "Week 4 — Telegram + Discord bots: grammy + discord.js apps, webhooks, command handlers"
+    priority: medium
+    status: todo
+    quarter: "2026-Q3"
+    tags: [telegram, discord, bots]
+
+  - id: post-launch-multi-llm
+    title: "Post-launch — Multi-LLM cost optimisation: route summarisation through sluice for per-call cost attribution in docket"
+    priority: medium
+    status: todo
+    quarter: "2026-Q3"
+    tags: [sluice, docket, cost-ops]
+
+  - id: org-transfer-cleanup
+    title: "Org transfer cleanup: update CI badges, federated creds, OIDC subjects after neuralliquid/convolens rename settles"
+    description: "Repo moved from JustAGhosT/whatssummarize to neuralliquid/convolens. Verify CI workflows, Azure federated creds, and any consumer references all use the new canonical name."
+    priority: medium
+    status: todo
+    quarter: "2026-Q2"
+    tags: [ci, federated-creds, neuralliquid]
