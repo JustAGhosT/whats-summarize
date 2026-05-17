@@ -393,11 +393,9 @@ az role assignment list --assignee <client-id>
 # List federated credentials
 az ad app federated-credential list --id <app-id>
 
-# Test deployment (dry run)
-az deployment group what-if \
-  --resource-group rg-whatssummarize-dev \
-  --template-file infra/bicep/main.bicep \
-  --parameters infra/parameters/dev.bicepparam
+# Test deployment (dry run) — Terraform
+terraform -chdir=infra/terraform/env/dev init -backend-config=backend.hcl
+terraform -chdir=infra/terraform/env/dev plan
 ```
 
 ## Migration from Legacy Credentials

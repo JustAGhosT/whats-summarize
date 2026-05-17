@@ -1,315 +1,182 @@
 # ConvoLens Infrastructure
 
-Azure infrastructure as code using Bicep templates for ConvoLens.
+Azure infrastructure as code for ConvoLens, managed with **Terraform** (AzureRM provider).
 
-> **Note:** Azure resource names (e.g. `rg-whatssummarize-*`, `kvwhatssummarizedev`,
-> `cosmos-whatssummarize-dev`, `oai-whatssummarize-dev`) intentionally still
-> reference the legacy project name — renaming live Azure resources is a
-> separate, user-driven decision tracked in PR4 / cross-repo follow-ups.
+> Migrated from Bicep on 2026-05-11. Naming follows the NL Azure Naming
+> Standard with [ADR-0027](https://github.com/JustAGhosT/mystira-workspace/blob/main/docs/architecture/adr/0027-azure-resource-naming-convention.md)
+> (no region suffix): `{org}-{env}-{project}-{type}` →
+> `nl-dev-convolens-rg`, `nl-dev-convolens-kv`, etc.
 
-## Overview
-
-This directory contains all infrastructure configuration for deploying ConvoLens to Azure:
+## Layout
 
 ```
 infra/
-├── bicep/
-│   ├── main.bicep              # Main orchestration template
-│   └── modules/
-│       ├── key-vault.bicep     # Azure Key Vault
-│       ├── storage.bicep       # Azure Blob Storage
-│       ├── openai.bicep        # Azure OpenAI Service
-│       ├── cosmos-db.bicep     # Azure Cosmos DB
-│       ├── redis.bicep         # Azure Redis Cache
-│       ├── app-insights.bicep  # Application Insights
-│       ├── container-apps.bicep# Azure Container Apps
-│       └── static-web-app.bicep# Azure Static Web Apps
-├── parameters/
-│   ├── dev.bicepparam          # Development environment
-│   ├── staging.bicepparam      # Staging environment (create as needed)
-│   └── prod.bicepparam         # Production environment
-└── scripts/
-    ├── deploy.ps1              # PowerShell deployment (recommended)
-    ├── deploy.sh               # Bash deployment script
-    ├── validate-resources.ps1  # PowerShell validation
-    └── validate-resources.sh   # Bash validation script
+├── terraform/
+│   ├── env/
+│   │   └── dev/
+│   │       ├── terraform.tf      # Provider versions + remote backend
+│   │       ├── main.tf           # All resources (RG, KV, Storage, Cosmos, ACA, SWA, …)
+│   │       ├── variables.tf      # Input variables
+│   │       ├── outputs.tf        # Output values (endpoints, names, deploy tokens)
+│   │       ├── backend.hcl       # Backend init args (state location)
+│   │       └── terraform.tfvars  # Dev values (auto-loaded by Terraform)
+│   └── .gitignore                # .terraform/, *.tfstate, etc.
+├── scripts/                      # (empty — legacy bicep scripts removed)
+└── README.md                     # This file
 ```
 
-## Azure Resources
+## Resources provisioned
 
-| Resource | Purpose | Required |
-|----------|---------|----------|
-| Resource Group | Container for all resources | Yes |
-| Key Vault | Secrets management | Yes |
-| Storage Account | Blob storage for exports | Yes |
-| Azure OpenAI | AI summarization | No* |
-| Cosmos DB | NoSQL database | No* |
-| Redis Cache | Distributed caching | No* |
-| Application Insights | Monitoring & logging | Yes |
-| Container Apps | API hosting | Yes |
-| Static Web Apps | Frontend hosting | Yes |
+The `dev` environment ships these by default (toggle via `enable_*` variables):
 
-*Optional but recommended for production.
+| Resource | Name | Notes |
+|---|---|---|
+| Resource Group | `nl-dev-convolens-rg` | All resources scoped to this RG |
+| Log Analytics workspace | `nl-dev-convolens-law` | 30-day retention (90 in prod) |
+| Application Insights | `nl-dev-convolens-appi` | Linked to LAW |
+| Storage Account | `nldevconvolensst` | LRS, hot tier, blob soft-delete 7 days |
+| Blob containers | `chat-exports`, `user-uploads`, `summaries` | Private access |
+| Cosmos DB account | `nl-dev-convolens-cosmos` | Serverless, single region, no AZ redundancy |
+| Cosmos SQL DB | `convolens` | 3 containers: `users` `/id`, `chats` `/userId`, `summaries` `/chatId` |
+| Key Vault | `nl-dev-convolens-kv` | Access-policy mode, soft-delete 7 days |
+| Container Apps Environment | `nl-dev-convolens-cae` | Consumption profile only |
+| Container App | `nl-dev-convolens-api` | Placeholder helloworld image; the API CD workflow overrides `container_image_api` |
+| Static Web App | `nl-dev-convolens-swa` | Free tier |
+| KV secrets | `cosmos-db-endpoint`, `cosmos-db-key`, `cosmos-db-connection-string`, `storage-connection-string`, `appinsights-connection-string` | Created by Terraform after the deployer access policy lands |
 
-## Prerequisites
+Off by default in dev (set the variable to enable):
 
-1. **Azure CLI** installed and logged in
-   ```bash
-   az login
-   az account set --subscription "<subscription-id>"
-   ```
+| Variable | Resource |
+|---|---|
+| `enable_redis = true` | Azure Cache for Redis Basic C0 (~$15-30/mo) |
+| `enable_openai = true` | Azure OpenAI account (Foundry is configured separately today) |
+| `enable_budget_alerts = true` + non-empty `admin_email` | RG-scoped consumption budget with 80% actual / 100% forecasted alerts |
 
-2. **Bicep CLI** (usually included with Azure CLI)
-   ```bash
-   az bicep install
-   az bicep version
-   ```
+## Remote state
 
-3. **Required permissions**:
-   - Contributor access to the subscription/resource group
-   - Key Vault Administrator (for managing secrets)
-   - Cognitive Services Contributor (for OpenAI)
+Terraform state lives in Azure Storage. **Bootstrap once per workspace** (see `Bootstrap` below); never recreate by hand.
 
-4. **GitHub Actions Setup** (for CI/CD deployments):
-   - See [Azure Setup Guide](../docs/AZURE_SETUP.md) for configuring OIDC authentication
-   - Requires configuring three GitHub secrets: `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID`
-
-## Quick Start
-
-### Deploy Development Environment (PowerShell - Recommended)
-
-```powershell
-# From repository root
-cd infra/scripts
-
-# Deploy (what-if runs automatically first, then prompts for confirmation)
-./deploy.ps1 -Environment dev
-
-# Skip what-if and deploy directly
-./deploy.ps1 -Environment dev -SkipWhatIf -Force
-
-# Only run what-if analysis
-./deploy.ps1 -Environment dev -WhatIfOnly
-
-# Validate templates only
-./deploy.ps1 -Environment dev -ValidateOnly
+```
+Storage account:    nltfstateconvolens
+Resource group:     nl-tfstate-rg
+Container:          tfstate
+State key (dev):    convolens-dev.tfstate
 ```
 
-### Deploy Production Environment
+Backend config is in `infra/terraform/env/dev/backend.hcl`. Passed to `init` via `-backend-config=backend.hcl`. The default `azurerm` backend uses access keys; local users and the GitHub Actions SP (`convolens-sp`) both need Contributor on the tfstate storage account, which their subscription-scoped Contributor already grants.
 
-```powershell
-# Deploy to production (what-if + confirmation by default)
-./deploy.ps1 -Environment prod
+## Deploying
 
-# Preview production changes only
-./deploy.ps1 -Environment prod -WhatIfOnly
-```
-
-### Bash Alternative
+### Locally
 
 ```bash
-./deploy.sh dev                    # Deploy to dev
-./deploy.sh prod --what-if         # Preview production changes
-./deploy.sh staging --validate-only # Validate staging templates
+cd infra/terraform/env/dev
+terraform init -backend-config=backend.hcl
+terraform plan
+terraform apply
 ```
 
-## Deployment Options
+You need to be logged into Azure with permissions to manage `nl-dev-convolens-rg` and read `nl-tfstate-rg/nltfstateconvolens` keys.
 
-### Using Scripts (Recommended)
+### Via CI
 
-```powershell
-# PowerShell (what-if is automatic)
-./scripts/deploy.ps1 -Environment <env>              # Full deploy with what-if
-./scripts/deploy.ps1 -Environment <env> -WhatIfOnly  # Preview only
-./scripts/deploy.ps1 -Environment <env> -ValidateOnly # Validate templates
-./scripts/validate-resources.ps1 -Environment <env>  # Validate resources
-```
+The `Infrastructure` GitHub Actions workflow (`.github/workflows/infrastructure.yml`) runs:
+
+- **Validate** — `terraform fmt -check` + `terraform validate` on every push and PR
+- **Plan** — `terraform plan` with a posted PR comment on pull requests
+- **Apply** — `terraform apply` on push to `main` (or `workflow_dispatch` → `apply`)
+- **Verify** — health-checks the Container App URL after apply
+
+Auth is OpenID Connect via the AAD app `convolens-sp` and the federated credential for `repo:neuralliquid/convolens:environment:dev`. The `AZURE_CREDENTIALS` env-scoped secret (env `dev`) provides `clientId`/`tenantId`/`subscriptionId` for the workflow.
+
+## Bootstrap (new tenant / first time)
+
+These steps were done for the active tenant (`9530cd32-9e33-47f0-9247-ed964730b580`, sub `bb4e3882-2079-4bab-8974-611bc0b8bb58`) on 2026-05-10. Keep here as a reference for future environments or tenant moves:
 
 ```bash
-# Bash alternative
-./scripts/deploy.sh <environment>                    # Deploy
-./scripts/deploy.sh <environment> --what-if          # Preview
-./scripts/deploy.sh <environment> --validate-only    # Validate
-./scripts/validate-resources.sh <environment>        # Validate resources
+# 1. AAD app + service principal + federated cred
+az ad app create --display-name convolens-sp
+APP_OBJECT_ID=$(az ad app list --display-name convolens-sp --query '[0].id' -o tsv)
+APP_CLIENT_ID=$(az ad app list --display-name convolens-sp --query '[0].appId' -o tsv)
+az ad sp create --id "$APP_CLIENT_ID"
+SP_OBJECT_ID=$(az ad sp list --display-name convolens-sp --query '[0].id' -o tsv)
+
+az ad app federated-credential create --id "$APP_OBJECT_ID" --parameters '{
+  "name": "github-actions-dev",
+  "issuer": "https://token.actions.githubusercontent.com",
+  "subject": "repo:neuralliquid/convolens:environment:dev",
+  "audiences": ["api://AzureADTokenExchange"]
+}'
+
+# 2. Sub-scoped Contributor (lets the SP create RGs and provision resources)
+az role assignment create \
+  --assignee-object-id "$SP_OBJECT_ID" \
+  --assignee-principal-type ServicePrincipal \
+  --role Contributor \
+  --scope /subscriptions/<sub-id>
+
+# 3. Remote-state storage (one-time)
+az group create --name nl-tfstate-rg --location eastus2
+az storage account create \
+  --name nltfstateconvolens \
+  --resource-group nl-tfstate-rg \
+  --location eastus2 \
+  --sku Standard_LRS \
+  --kind StorageV2 \
+  --min-tls-version TLS1_2 \
+  --allow-blob-public-access false
+SA_KEY=$(az storage account keys list --account-name nltfstateconvolens --resource-group nl-tfstate-rg --query "[0].value" -o tsv)
+az storage container create --name tfstate --account-name nltfstateconvolens --account-key "$SA_KEY"
+
+# 4. Set the env-scoped GitHub secret
+gh secret set AZURE_CREDENTIALS --env dev --repo neuralliquid/convolens --body "$(jq -nc \
+  --arg c "$APP_CLIENT_ID" \
+  --arg t "<tenant-id>" \
+  --arg s "<sub-id>" \
+  '{clientId:$c, tenantId:$t, subscriptionId:$s}')"
 ```
 
-### Using Azure CLI Directly
+## Adding staging or prod
+
+1. Copy `infra/terraform/env/dev/` to `infra/terraform/env/{env}/`.
+2. Update `terraform.tfvars` (env name, location, sizing flags, admin email).
+3. Update `backend.hcl` → `key = "convolens-{env}.tfstate"`.
+4. Create a federated credential matching `repo:neuralliquid/convolens:environment:{env}` on the AAD app.
+5. Create the GitHub Environment `{env}` and set its `AZURE_CREDENTIALS` secret.
+6. PR + merge — the workflow's `apply` job picks up the new environment.
+
+## Cost (dev, today)
+
+Rough monthly run-rate at idle:
+
+- Cosmos DB serverless: $0 baseline; pay-per-request (RU-based). Empty DB ~free.
+- Static Web App Free: $0.
+- Storage Account LRS, hot tier, empty: <$1.
+- App Insights + LAW: $0 until you ingest meaningful telemetry (per-GB pricing).
+- Container Apps Consumption + 0 min replicas: $0 when idle.
+- Key Vault Standard: ~$0.03 per 10k operations.
+
+Expect <$5/mo at idle. The big drivers when active: Container Apps execution time, Cosmos RU consumption, and App Insights ingestion.
+
+If you flip `enable_redis = true`, add ~$15-30/mo for Basic C0. `enable_openai = true` is metered separately by token usage.
+
+## Drift / state recovery
+
+If `terraform apply` errors mid-deploy and a resource exists in Azure but is missing from state:
 
 ```bash
-# Create resource group
-az group create \
-  --name rg-whatssummarize-dev \
-  --location eastus
-
-# Deploy
-az deployment group create \
-  --resource-group rg-whatssummarize-dev \
-  --template-file bicep/main.bicep \
-  --parameters parameters/dev.bicepparam
+cd infra/terraform/env/dev
+MSYS_NO_PATHCONV=1 terraform import <resource_address> <azure_resource_id>
+terraform apply
 ```
 
-### Using GitHub Actions
+Common cause: transient ARM API hiccup between Azure responding and Terraform receiving the response. The resource shows up in `az resource list` but `terraform state list` is missing it. Import to recover.
 
-1. **Configure Azure credentials** (see [Azure Setup Guide](../docs/AZURE_SETUP.md) for detailed instructions):
-   - Create Azure AD application (service principal)
-   - Configure federated credentials for OIDC
-   - Set up GitHub repository secrets:
-     - `AZURE_CLIENT_ID` - Service principal client ID
-     - `AZURE_TENANT_ID` - Azure AD tenant ID
-     - `AZURE_SUBSCRIPTION_ID` - Azure subscription ID
-
-2. **Trigger deployment**:
-   - Push to `main` branch (auto-deploys to dev)
-   - Use workflow dispatch for staging/prod
-   - PRs trigger what-if analysis
-
-## Configuration
-
-### Environment Parameters
-
-Edit `parameters/<environment>.bicepparam` to customize:
-
-```bicep
-param environment = 'dev'
-param projectName = 'whatssummarize'
-param location = 'eastus'
-
-// Enable/disable optional resources
-param enableOpenAI = true
-param enableCosmosDB = true
-param enableRedis = true
-
-// OpenAI model deployments
-param openAIDeployments = [
-  { name: 'gpt-4', model: 'gpt-4', version: '0613', capacity: 10 }
-]
-```
-
-### Resource Naming Convention
-
-Resources follow this naming pattern:
-- `<type>-<project>-<environment>`
-
-Examples:
-- `rg-whatssummarize-dev` (Resource Group)
-- `kvwhatssummarizedev` (Key Vault - no hyphens)
-- `cosmos-whatssummarize-dev` (Cosmos DB)
-
-## CI/CD Workflows
-
-### Infrastructure Workflow
-
-Triggered by:
-- Push to `main` (auto-deploy to dev)
-- Pull requests (what-if analysis)
-- Manual dispatch (any environment)
-
-### Release Validation
-
-Runs before releases to verify:
-- All required Azure resources exist
-- Secrets are configured in Key Vault
-- Application builds successfully
-- Tests pass
-
-## Post-Deployment
-
-After deployment, the script generates `.env.azure` with:
+## Removing the dev environment
 
 ```bash
-# Azure Provider
-AZURE_PROVIDER_ENABLED=true
-
-# Azure OpenAI
-AZURE_OPENAI_ENDPOINT=https://oai-whatssummarize-dev.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4
-
-# Azure Cosmos DB
-AZURE_COSMOS_ENDPOINT=https://cosmos-whatssummarize-dev.documents.azure.com
-
-# etc...
+cd infra/terraform/env/dev
+terraform destroy
 ```
 
-Secrets are stored in Key Vault and should be retrieved at runtime.
-
-## Validation
-
-Validate resources exist before release:
-
-```bash
-# Run validation script
-./scripts/validate-resources.sh prod
-
-# Or use strict mode (fails on any missing required resource)
-./scripts/validate-resources.sh prod --strict
-```
-
-## Cost Optimization
-
-### Development
-- Uses serverless Cosmos DB
-- Basic Redis tier
-- Minimal OpenAI capacity
-
-### Production
-- Standard Redis tier
-- Higher OpenAI capacity
-- Zone redundancy recommended
-
-### Cost Estimates (approximate)
-
-| Environment | Monthly Cost |
-|-------------|--------------|
-| Dev | ~$50-100 |
-| Staging | ~$100-200 |
-| Production | ~$300-500+ |
-
-*Costs vary based on usage. OpenAI costs scale with token usage.*
-
-## Troubleshooting
-
-### Deployment Fails
-
-1. Check Azure CLI login:
-   ```bash
-   az account show
-   ```
-
-2. Validate templates:
-   ```bash
-   az bicep build --file bicep/main.bicep
-   ```
-
-3. Check resource quotas:
-   ```bash
-   az vm list-usage --location eastus
-   ```
-
-### OpenAI Not Available
-
-Azure OpenAI has limited regional availability. Update `location` parameter if needed.
-
-### Key Vault Access
-
-Ensure your identity has Key Vault access:
-```bash
-az keyvault set-policy \
-  --name kvwhatssummarizedev \
-  --upn your@email.com \
-  --secret-permissions get list set delete
-```
-
-## Security Considerations
-
-- Secrets stored in Key Vault, never in code
-- Managed identities for service-to-service auth
-- HTTPS enforced everywhere
-- Private endpoints available for production
-- Regular key rotation recommended
-
-## Related Documentation
-
-- [Azure Bicep](https://docs.microsoft.com/azure/azure-resource-manager/bicep/)
-- [Azure OpenAI](https://docs.microsoft.com/azure/cognitive-services/openai/)
-- [Azure Container Apps](https://docs.microsoft.com/azure/container-apps/)
-- [Azure Static Web Apps](https://docs.microsoft.com/azure/static-web-apps/)
+This tears down everything in `nl-dev-convolens-rg`. The Key Vault is soft-deleted (7-day window in dev); the provider's `purge_soft_delete_on_destroy = true` setting purges it cleanly.

@@ -31,8 +31,8 @@ on:
         type: choice
         options:
           - validate
-          - what-if
-          - deploy
+          - plan
+          - apply
 
 permissions:
   id-token: write
@@ -40,47 +40,44 @@ permissions:
   pull-requests: write
 
 env:
-  AZURE_RESOURCE_GROUP_DEV: rg-whatssummarize-dev
-  AZURE_RESOURCE_GROUP_STAGING: rg-whatssummarize-staging
-  AZURE_RESOURCE_GROUP_PROD: rg-whatssummarize-prod
-  AZURE_LOCATION: eastus
+  TF_VERSION: '1.14.7'
+  TF_IN_AUTOMATION: 'true'
+  TF_INPUT: '0'
+  ARM_USE_OIDC: 'true'
 
 jobs:
   # =============================================================================
-  # Validate Bicep Templates
+  # Validate Terraform
   # =============================================================================
   validate:
-    name: Validate Templates
+    name: Validate Terraform
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
 
-      - name: Install Bicep CLI
-        run: |
-          az bicep install
-          az config set bicep.use_binary_from_path=false
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
 
-      - name: Validate Bicep Syntax
-        run: |
-          echo "Validating Bicep files..."
-          az bicep build --file infra/bicep/main.bicep --stdout > /dev/null
-          echo "✅ Bicep syntax validation passed"
+      - name: Terraform Format Check
+        run: terraform -chdir=infra/terraform/env/dev fmt -check -recursive
 
-      - name: Lint Bicep Files
-        run: |
-          echo "Linting Bicep files..."
-          # Install bicep linter if available
-          az bicep lint --file infra/bicep/main.bicep 2>/dev/null || echo "Linting not available, skipping..."
+      - name: Terraform Init (no backend)
+        run: terraform -chdir=infra/terraform/env/dev init -backend=false
+
+      - name: Terraform Validate
+        run: terraform -chdir=infra/terraform/env/dev validate
 
   # =============================================================================
-  # Preview Changes (What-If)
+  # Plan Changes (PR preview / workflow_dispatch=plan)
   # =============================================================================
-  preview:
-    name: Preview Changes (${{ matrix.environment }})
+  plan:
+    name: Plan (${{ matrix.environment }})
     runs-on: ubuntu-latest
     needs: validate
-    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'what-if')
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'plan')
     strategy:
       matrix:
         environment: ${{ github.event_name == 'workflow_dispatch' && fromJson(format('["{0}"]', github.event.inputs.environment)) || fromJson('["dev"]') }}
@@ -89,6 +86,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
 
       - name: Parse Azure Credentials
         id: azure-creds
@@ -99,103 +101,90 @@ jobs:
           CLIENT_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.clientId')
           TENANT_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.tenantId')
           SUBSCRIPTION_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.subscriptionId')
-          
-          # Validate that parsing succeeded
-          if [ "$CLIENT_ID" = "null" ] || [ -z "$CLIENT_ID" ]; then
-            echo "Error: Failed to parse clientId from AZURE_CREDENTIALS"
-            exit 1
-          fi
-          if [ "$TENANT_ID" = "null" ] || [ -z "$TENANT_ID" ]; then
-            echo "Error: Failed to parse tenantId from AZURE_CREDENTIALS"
-            exit 1
-          fi
-          if [ "$SUBSCRIPTION_ID" = "null" ] || [ -z "$SUBSCRIPTION_ID" ]; then
-            echo "Error: Failed to parse subscriptionId from AZURE_CREDENTIALS"
-            exit 1
-          fi
-          
-          echo "client-id=$CLIENT_ID" >> $GITHUB_OUTPUT
-          echo "tenant-id=$TENANT_ID" >> $GITHUB_OUTPUT
-          echo "subscription-id=$SUBSCRIPTION_ID" >> $GITHUB_OUTPUT
-      - name: Azure Login
+          for v in "$CLIENT_ID" "$TENANT_ID" "$SUBSCRIPTION_ID"; do
+            if [ "$v" = "null" ] || [ -z "$v" ]; then
+              echo "Error: AZURE_CREDENTIALS missing clientId/tenantId/subscriptionId" >&2
+              exit 1
+            fi
+          done
+          echo "client-id=$CLIENT_ID" >> "$GITHUB_OUTPUT"
+          echo "tenant-id=$TENANT_ID" >> "$GITHUB_OUTPUT"
+          echo "subscription-id=$SUBSCRIPTION_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Azure Login (OIDC)
         uses: azure/login@cb79c773a3cfa27f31f25eb3f677781210c9ce3d # v1.6.1
         with:
           client-id: ${{ steps.azure-creds.outputs.client-id }}
           tenant-id: ${{ steps.azure-creds.outputs.tenant-id }}
           subscription-id: ${{ steps.azure-creds.outputs.subscription-id }}
 
-      - name: Ensure Resource Group
+      - name: Terraform Init
+        env:
+          ARM_CLIENT_ID: ${{ steps.azure-creds.outputs.client-id }}
+          ARM_TENANT_ID: ${{ steps.azure-creds.outputs.tenant-id }}
+          ARM_SUBSCRIPTION_ID: ${{ steps.azure-creds.outputs.subscription-id }}
+        run: terraform -chdir=infra/terraform/env/${{ matrix.environment }} init -backend-config=backend.hcl
+
+      - name: Terraform Plan
+        id: plan
+        env:
+          ARM_CLIENT_ID: ${{ steps.azure-creds.outputs.client-id }}
+          ARM_TENANT_ID: ${{ steps.azure-creds.outputs.tenant-id }}
+          ARM_SUBSCRIPTION_ID: ${{ steps.azure-creds.outputs.subscription-id }}
         run: |
-          RG_NAME="rg-whatssummarize-${{ matrix.environment }}"
-          if ! az group show --name "$RG_NAME" &>/dev/null; then
-            echo "Creating resource group: $RG_NAME"
-            az group create --name "$RG_NAME" --location "${{ env.AZURE_LOCATION }}"
-          fi
-
-      - name: What-If Analysis
-        id: whatif
-        run: |
-          RG_NAME="rg-whatssummarize-${{ matrix.environment }}"
-          echo "Running what-if analysis for ${{ matrix.environment }}..."
-
-          az deployment group what-if \
-            --resource-group "$RG_NAME" \
-            --template-file infra/bicep/main.bicep \
-            --parameters infra/parameters/${{ matrix.environment }}.bicepparam \
-            --name "whatif-${{ github.run_id }}" \
-            > whatif-output.txt 2>&1 || true
-
-          cat whatif-output.txt
-
-          # Save for PR comment
-          echo "whatif<<EOF" >> $GITHUB_OUTPUT
-          cat whatif-output.txt >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          terraform -chdir=infra/terraform/env/${{ matrix.environment }} plan -no-color -out=tfplan | tee plan-output.txt
+          {
+            echo "plan<<EOF"
+            cat plan-output.txt
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Comment on PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          PLAN_OUTPUT: ${{ steps.plan.outputs.plan }}
         with:
           script: |
-            const output = `### Infrastructure What-If Analysis (${{ matrix.environment }})
-
-            <details>
-            <summary>Click to expand</summary>
-
-            \`\`\`
-            ${{ steps.whatif.outputs.whatif }}
-            \`\`\`
-
-            </details>
-
-            *Run ID: ${{ github.run_id }}*`;
-
-            github.rest.issues.createComment({
+            const planOutput = process.env.PLAN_OUTPUT || '';
+            const truncated = planOutput.length > 60000
+              ? planOutput.slice(0, 60000) + '\n\n[…output truncated…]'
+              : planOutput;
+            const body = `### Terraform Plan (\`${{ matrix.environment }}\`)\n\n<details>\n<summary>Click to expand</summary>\n\n\`\`\`\n${truncated}\n\`\`\`\n\n</details>\n\n*Run ID: ${{ github.run_id }}*`;
+            await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: output
+              body
             });
 
   # =============================================================================
-  # Deploy Infrastructure
+  # Apply (push to main / workflow_dispatch=apply)
   # =============================================================================
-  deploy:
-    name: Deploy (${{ matrix.environment }})
+  apply:
+    name: Apply (${{ matrix.environment }})
     runs-on: ubuntu-latest
     needs: validate
     if: |
       (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'deploy')
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'apply')
     strategy:
       matrix:
         environment: ${{ github.event_name == 'workflow_dispatch' && fromJson(format('["{0}"]', github.event.inputs.environment)) || fromJson('["dev"]') }}
       max-parallel: 1
     environment: ${{ matrix.environment }}
+    outputs:
+      container_app_url: ${{ steps.outputs.outputs.container_app_url }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
 
       - name: Parse Azure Credentials
         id: azure-creds
@@ -206,148 +195,73 @@ jobs:
           CLIENT_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.clientId')
           TENANT_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.tenantId')
           SUBSCRIPTION_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.subscriptionId')
-          
-          # Validate that parsing succeeded
-          if [ "$CLIENT_ID" = "null" ] || [ -z "$CLIENT_ID" ]; then
-            echo "Error: Failed to parse clientId from AZURE_CREDENTIALS"
-            exit 1
-          fi
-          if [ "$TENANT_ID" = "null" ] || [ -z "$TENANT_ID" ]; then
-            echo "Error: Failed to parse tenantId from AZURE_CREDENTIALS"
-            exit 1
-          fi
-          if [ "$SUBSCRIPTION_ID" = "null" ] || [ -z "$SUBSCRIPTION_ID" ]; then
-            echo "Error: Failed to parse subscriptionId from AZURE_CREDENTIALS"
-            exit 1
-          fi
-          
-          echo "client-id=$CLIENT_ID" >> $GITHUB_OUTPUT
-          echo "tenant-id=$TENANT_ID" >> $GITHUB_OUTPUT
-          echo "subscription-id=$SUBSCRIPTION_ID" >> $GITHUB_OUTPUT
-      - name: Azure Login
+          for v in "$CLIENT_ID" "$TENANT_ID" "$SUBSCRIPTION_ID"; do
+            if [ "$v" = "null" ] || [ -z "$v" ]; then
+              echo "Error: AZURE_CREDENTIALS missing clientId/tenantId/subscriptionId" >&2
+              exit 1
+            fi
+          done
+          echo "client-id=$CLIENT_ID" >> "$GITHUB_OUTPUT"
+          echo "tenant-id=$TENANT_ID" >> "$GITHUB_OUTPUT"
+          echo "subscription-id=$SUBSCRIPTION_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Azure Login (OIDC)
         uses: azure/login@cb79c773a3cfa27f31f25eb3f677781210c9ce3d # v1.6.1
         with:
           client-id: ${{ steps.azure-creds.outputs.client-id }}
           tenant-id: ${{ steps.azure-creds.outputs.tenant-id }}
           subscription-id: ${{ steps.azure-creds.outputs.subscription-id }}
 
-      - name: Ensure Resource Group
+      - name: Terraform Init
+        env:
+          ARM_CLIENT_ID: ${{ steps.azure-creds.outputs.client-id }}
+          ARM_TENANT_ID: ${{ steps.azure-creds.outputs.tenant-id }}
+          ARM_SUBSCRIPTION_ID: ${{ steps.azure-creds.outputs.subscription-id }}
+        run: terraform -chdir=infra/terraform/env/${{ matrix.environment }} init -backend-config=backend.hcl
+
+      - name: Terraform Apply
+        env:
+          ARM_CLIENT_ID: ${{ steps.azure-creds.outputs.client-id }}
+          ARM_TENANT_ID: ${{ steps.azure-creds.outputs.tenant-id }}
+          ARM_SUBSCRIPTION_ID: ${{ steps.azure-creds.outputs.subscription-id }}
+        run: terraform -chdir=infra/terraform/env/${{ matrix.environment }} apply -auto-approve
+
+      - name: Capture Outputs
+        id: outputs
+        env:
+          ARM_CLIENT_ID: ${{ steps.azure-creds.outputs.client-id }}
+          ARM_TENANT_ID: ${{ steps.azure-creds.outputs.tenant-id }}
+          ARM_SUBSCRIPTION_ID: ${{ steps.azure-creds.outputs.subscription-id }}
         run: |
-          RG_NAME="rg-whatssummarize-${{ matrix.environment }}"
-          if ! az group show --name "$RG_NAME" &>/dev/null; then
-            echo "Creating resource group: $RG_NAME"
-            az group create \
-              --name "$RG_NAME" \
-              --location "${{ env.AZURE_LOCATION }}" \
-              --tags project=convolens environment=${{ matrix.environment }} managedBy=github-actions
-          fi
+          terraform -chdir=infra/terraform/env/${{ matrix.environment }} output -json > tf-outputs.json
+          CONTAINER_APP_URL=$(jq -r '.container_app_url.value // ""' tf-outputs.json)
+          echo "container_app_url=$CONTAINER_APP_URL" >> "$GITHUB_OUTPUT"
 
-      - name: Deploy Infrastructure
-        id: deploy
-        run: |
-          RG_NAME="rg-whatssummarize-${{ matrix.environment }}"
-          DEPLOYMENT_NAME="deploy-${{ github.run_id }}-${{ github.run_attempt }}"
-
-          echo "Deploying to ${{ matrix.environment }}..."
-
-          az deployment group create \
-            --resource-group "$RG_NAME" \
-            --template-file infra/bicep/main.bicep \
-            --parameters infra/parameters/${{ matrix.environment }}.bicepparam \
-            --name "$DEPLOYMENT_NAME"
-
-          # Get outputs
-          echo "Getting deployment outputs..."
-          az deployment group show \
-            --resource-group "$RG_NAME" \
-            --name "$DEPLOYMENT_NAME" \
-            --query "properties.outputs" \
-            -o json > deployment-outputs.json
-
-          cat deployment-outputs.json
-
-      - name: Upload Deployment Outputs
+      - name: Upload Outputs
         uses: actions/upload-artifact@834a144ee995460fba8ed112a2fc961b36a5ec5a # v4.3.6
         with:
-          name: deployment-outputs-${{ matrix.environment }}
-          path: deployment-outputs.json
+          name: tf-outputs-${{ matrix.environment }}
+          path: infra/terraform/env/${{ matrix.environment }}/tf-outputs.json
           retention-days: 30
 
-      - name: Validate Deployment
-        run: |
-          echo "Validating deployed resources..."
-          chmod +x infra/scripts/validate-resources.sh
-          ./infra/scripts/validate-resources.sh ${{ matrix.environment }} || true
-
   # =============================================================================
-  # Post-Deployment Verification
+  # Post-Apply Health Check
   # =============================================================================
   verify:
     name: Verify Deployment
     runs-on: ubuntu-latest
-    needs: deploy
-    if: success()
+    needs: apply
+    if: success() && needs.apply.outputs.container_app_url != ''
     environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'dev' }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
-
-      - name: Download Outputs
-        uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16 # v4.1.8
-        with:
-          name: deployment-outputs-${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'dev' }}
-
-      - name: Parse Azure Credentials
-        id: azure-creds
-        env:
-          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
-        run: |
-          set -euo pipefail
-          CLIENT_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.clientId')
-          TENANT_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.tenantId')
-          SUBSCRIPTION_ID=$(echo "$AZURE_CREDENTIALS" | jq -r '.subscriptionId')
-          
-          # Validate that parsing succeeded
-          if [ "$CLIENT_ID" = "null" ] || [ -z "$CLIENT_ID" ]; then
-            echo "Error: Failed to parse clientId from AZURE_CREDENTIALS"
-            exit 1
-          fi
-          if [ "$TENANT_ID" = "null" ] || [ -z "$TENANT_ID" ]; then
-            echo "Error: Failed to parse tenantId from AZURE_CREDENTIALS"
-            exit 1
-          fi
-          if [ "$SUBSCRIPTION_ID" = "null" ] || [ -z "$SUBSCRIPTION_ID" ]; then
-            echo "Error: Failed to parse subscriptionId from AZURE_CREDENTIALS"
-            exit 1
-          fi
-          
-          echo "client-id=$CLIENT_ID" >> $GITHUB_OUTPUT
-          echo "tenant-id=$TENANT_ID" >> $GITHUB_OUTPUT
-          echo "subscription-id=$SUBSCRIPTION_ID" >> $GITHUB_OUTPUT
-      - name: Azure Login
-        uses: azure/login@cb79c773a3cfa27f31f25eb3f677781210c9ce3d # v1.6.1
-        with:
-          client-id: ${{ steps.azure-creds.outputs.client-id }}
-          tenant-id: ${{ steps.azure-creds.outputs.tenant-id }}
-          subscription-id: ${{ steps.azure-creds.outputs.subscription-id }}
-
       - name: Health Check
         run: |
-          echo "Running health checks..."
-
-          # Get API URL from outputs
-          API_URL=$(cat deployment-outputs.json | jq -r '.containerAppsApiUrl.value // empty')
-
-          if [ -n "$API_URL" ]; then
-            echo "Checking API health: $API_URL/health"
-            curl -sf "$API_URL/health" || echo "API health check failed (may not be deployed yet)"
-          else
-            echo "API URL not available yet"
-          fi
+          API_URL="${{ needs.apply.outputs.container_app_url }}"
+          echo "Probing $API_URL/health"
+          curl -sfS --max-time 10 "$API_URL/health" \
+            || echo "API health check failed (placeholder image returns 200 / — non-critical)"
 
       - name: Notify Success
-        if: success()
         run: |
-          echo "✅ Deployment and verification completed successfully!"
-          echo "Environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'dev' }}"
+          echo "Apply + verify completed: ${{ needs.apply.outputs.container_app_url }}"
